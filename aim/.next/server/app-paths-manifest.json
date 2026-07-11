@@ -1,0 +1,9 @@
+{
+  "/_not-found/page": "app/_not-found/page.js",
+  "/page": "app/page.js",
+  "/api/health/route": "app/api/health/route.js",
+  "/api/did/well-known/route": "app/api/did/well-known/route.js",
+  "/api/revocation-bus/route": "app/api/revocation-bus/route.js",
+  "/api/passport/issue/route": "app/api/passport/issue/route.js",
+  "/api/whois/route": "app/api/whois/route.js"
+}

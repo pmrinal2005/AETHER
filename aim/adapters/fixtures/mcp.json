@@ -1,0 +1,10 @@
+{
+  "serverInfo": { "name": "TravelGenie", "vendor": "Wanderlust Inc" },
+  "protocolVersion": "2025-06-18",
+  "endpoint": "https://mcp.wanderlust.example/sse",
+  "transport": "sse",
+  "capabilities": {
+    "tools": [{ "name": "flight-search" }, { "name": "itinerary-build" }],
+    "resources": [{ "name": "destination-guide", "uri": "guide://dest" }]
+  }
+}

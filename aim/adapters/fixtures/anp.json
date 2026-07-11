@@ -1,0 +1,8 @@
+{
+  "did": "did:wba:anp.example:agent:scrapey_x",
+  "owner": "Unknown Operator",
+  "ad": {
+    "endpoint": "https://anp.example/scrapey",
+    "capabilities": [{ "name": "web-scrape" }, { "name": "bulk-request" }]
+  }
+}

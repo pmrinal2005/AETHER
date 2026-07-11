@@ -1,0 +1,9 @@
+{
+  "agentName": "PayAdapter",
+  "merchant": "FinBridge",
+  "rpId": "finbridge.example",
+  "credentialId": "AP2-CRED-8842",
+  "mandateRef": "mandate://finbridge/authz/771",
+  "endpoint": "https://ap2.finbridge.example/agent",
+  "mandateTypes": ["intent-mandate", "cart-mandate"]
+}

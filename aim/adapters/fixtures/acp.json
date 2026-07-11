@@ -1,0 +1,12 @@
+{
+  "agent": {
+    "name": "SupportPal",
+    "owner": "HelpDesk LLC",
+    "endpoint": "https://acp.helpdesk.example/agent",
+    "services": [
+      { "type": "ticket-triage" },
+      { "type": "kb-lookup" }
+    ],
+    "messaging": "async"
+  }
+}

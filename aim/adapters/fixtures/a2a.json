@@ -1,0 +1,9 @@
+{
+  "name": "ShopBot2000",
+  "provider": { "organization": "Acme Retail Co" },
+  "url": "https://agents.acme.example/shopbot",
+  "skills": [
+    { "id": "checkout-negotiation", "name": "Checkout Negotiation" },
+    { "id": "catalog-search", "name": "Catalog Search" }
+  ]
+}

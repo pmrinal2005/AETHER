@@ -1,0 +1,35 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Next.js
+.next/
+out/
+build/
+dist/
+
+# Env
+.env
+.env*.local
+.env.local
+
+# Vercel
+.vercel
+
+# Logs
+*.log
+npm-debug.log*
+
+# ML
+ml-modal/__pycache__/
+ml-modal/.modal/
+*.onnx
+
+# OS
+.DS_Store
+*.pem
+
+# Misc
+*.tar.gz
+*.bak

@@ -1,0 +1,1 @@
+{"@context":["https://www.w3.org/ns/did/v1"],"id":"did:web:aim.local","verificationMethod":[],"service":[{"id":"did:web:aim.local#agentwhois","type":"AgentWhoisService","serviceEndpoint":"https://aim.local/api/whois"},{"id":"did:web:aim.local#verify","type":"TrustQueryService","serviceEndpoint":"https://aim.local/api/whois"}],"controlledAgents":[]}
