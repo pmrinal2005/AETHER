@@ -6,11 +6,21 @@ import {
   ReputationScatter, ModerationBreakdownPie, WarningDistributionBar,
   ProtocolMixPolar, ScoreDistributionHistogram, TrustTierAreaChart,
   AgentBubbleChart, ScoreComparatorBar, DisputesTrendBar,
+  ScoreTrendMultiLine, ModerationOutcomeStacked, OperatorFleetBar,
+  CapabilityCoverageRadar, StatusMixDoughnut, OnboardingMixedChart,
+  FederationGroupedBar, DisputeReasonPolar, ScoreGauge, ConfidenceGauge,
 } from "@/components/charts/Charts";
 import { DashboardData, agentName, scoreFor, warningFor } from "@/lib/types";
 
 // ---------------- Analytics Command Center (registry-wide charts hub) ----------------
+// Reimagined as a tabbed, multi-panel dashboard (Overview · Reputation · Moderation ·
+// Federation) rendered entirely with Chart.js on synthetic/dummy data.
+const ANALYTICS_TABS = ["Overview", "Reputation", "Moderation", "Federation"] as const;
+type AnalyticsTab = (typeof ANALYTICS_TABS)[number];
+
 export function AnalyticsDashboardPanel({ data }: { data: DashboardData }) {
+  const [tab, setTab] = useState<AnalyticsTab>("Overview");
+
   const scores = data.agents.map((a) => scoreFor(data, a.id) ?? 0);
   const avgScore = scores.length ? Math.round(scores.reduce((x, y) => x + y, 0) / scores.length) : 0;
 
@@ -23,6 +33,16 @@ export function AnalyticsDashboardPanel({ data }: { data: DashboardData }) {
   const modCounts: Record<string, number> = {};
   data.moderationQueue.forEach((m) => { modCounts[m.flagType] = (modCounts[m.flagType] ?? 0) + 1; });
 
+  const statusCounts: Record<string, number> = {};
+  data.statuses.forEach((s) => { statusCounts[s.status] = (statusCounts[s.status] ?? 0) + 1; });
+
+  const operatorCounts: Record<string, number> = {};
+  data.agents.forEach((a) => { operatorCounts[a.operatorName] = (operatorCounts[a.operatorName] ?? 0) + 1; });
+
+  const capCounts: Record<string, number> = {};
+  data.agents.forEach((a) => (a.capabilities || []).forEach((c) => { capCounts[c] = (capCounts[c] ?? 0) + 1; }));
+  const topCaps = Object.entries(capCounts).sort((a, b) => b[1] - a[1]).slice(0, 6);
+
   // Mocked historical trust-tier population trend (demo/dummy data).
   const tierSeries = [0, 1, 2, 3, 4].map((i) => ({
     label: `T-${4 - i}`,
@@ -31,6 +51,19 @@ export function AnalyticsDashboardPanel({ data }: { data: DashboardData }) {
     probation: Math.max(0, buckets.probation + ((4 - i) % 2)),
     blocked: Math.max(0, buckets.blocked),
   }));
+
+  // Mocked multi-protocol average-score trend across 6 synthetic time buckets.
+  const trendLabels = ["6d", "5d", "4d", "3d", "2d", "now"];
+  const trendSeries = Object.keys(protocolCounts).slice(0, 4).map((proto) => {
+    const protoAgents = data.agents.filter((a) => a.protocolType === proto);
+    const protoAvg = protoAgents.length ? Math.round(protoAgents.reduce((s, a) => s + (scoreFor(data, a.id) ?? 0), 0) / protoAgents.length) : avgScore;
+    return { name: proto, data: trendLabels.map((_, i) => Math.max(0, Math.min(999, protoAvg - (5 - i) * 12 + Math.round(Math.sin(i + proto.length) * 20)))) };
+  });
+
+  // Onboarding trend (synthetic): daily new agents + cumulative registry size.
+  const onboardDaily = [2, 3, 1, 4, 2, 3, data.agents.length > 15 ? 5 : 2];
+  let cum = 0;
+  const onboardCumulative = onboardDaily.map((d) => (cum += d));
 
   const bubblePoints = data.agents.map((a) => {
     const w = warningFor(data, a.id);
@@ -42,7 +75,26 @@ export function AnalyticsDashboardPanel({ data }: { data: DashboardData }) {
 
   const disputeWeeks = [0, 1, 2, 3].map((wk) => data.disputes.filter((_, i) => i % 4 === wk).length + wk);
 
-  const flagged = data.moderationQueue.length;
+  // Moderation outcomes stacked per flag type (synthetic split of statuses).
+  const modFlags = Object.keys(modCounts).length ? Object.keys(modCounts) : ["benign"];
+  const modApproved = modFlags.map((f) => data.moderationQueue.filter((m) => m.flagType === f && m.status === "approved").length);
+  const modTimeout = modFlags.map((f) => data.moderationQueue.filter((m) => m.flagType === f && m.status === "timeout").length);
+  const modRevoked = modFlags.map((f) => data.moderationQueue.filter((m) => m.flagType === f && m.status === "revoked").length);
+  const modPending = modFlags.map((f) => data.moderationQueue.filter((m) => m.flagType === f && m.status === "pending").length);
+
+  const disputeReasons: Record<string, number> = {};
+  data.disputes.forEach((d) => {
+    const key = d.reason.toLowerCase().includes("inject") ? "prompt injection"
+      : d.reason.toLowerCase().includes("gossip") || d.reason.toLowerCase().includes("false") ? "gossip/false claim"
+      : d.reason.toLowerCase().includes("imperson") ? "impersonation" : "other";
+    disputeReasons[key] = (disputeReasons[key] ?? 0) + 1;
+  });
+
+  // Federation grouped bar per peer (outbound vs inbound).
+  const peerNames = data.peers.map((p) => p.registryName.split(" ")[0]);
+  const peerOutbound = data.peers.map((p) => data.syncLogs.filter((l) => l.peerId === p.id && l.direction === "outbound").length);
+  const peerInbound = data.peers.map((p) => data.syncLogs.filter((l) => l.peerId === p.id && l.direction === "inbound").length);
+
   const pending = data.moderationQueue.filter((m) => m.status === "pending").length;
 
   const stats = [
@@ -53,6 +105,8 @@ export function AnalyticsDashboardPanel({ data }: { data: DashboardData }) {
     { num: pending, label: "Mod Pending" },
     { num: data.peers.length, label: "Fed Peers" },
   ];
+
+  const topScored = [...data.agents].sort((a, b) => (scoreFor(data, b.id) ?? 0) - (scoreFor(data, a.id) ?? 0)).slice(0, 3);
 
   return (
     <div className="p-3 space-y-3">
@@ -68,16 +122,58 @@ export function AnalyticsDashboardPanel({ data }: { data: DashboardData }) {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div className="chart-box"><div className="chart-title">Score Distribution</div><ScoreDistributionHistogram scores={scores} /></div>
-        <div className="chart-box"><div className="chart-title">Protocol Mix</div><ProtocolMixPolar counts={protocolCounts} /></div>
-        <div className="chart-box"><div className="chart-title">Trust-Tier Population (trend)</div><TrustTierAreaChart series={tierSeries} /></div>
-        <div className="chart-box"><div className="chart-title">Warning-Tier Breakdown</div><WarningDistributionBar buckets={buckets} /></div>
-        <div className="chart-box"><div className="chart-title">Moderation Flags</div><ModerationBreakdownPie counts={Object.keys(modCounts).length ? modCounts : { benign: 1 }} /></div>
-        <div className="chart-box"><div className="chart-title">Disputes Trend</div><DisputesTrendBar counts={disputeWeeks} /></div>
-        <div className="chart-box sm:col-span-2"><div className="chart-title">Agent Risk Map (score × warning × connectivity)</div><AgentBubbleChart points={bubblePoints} /></div>
-        <div className="chart-box sm:col-span-2"><div className="chart-title">Top Agents by Score</div><ScoreComparatorBar names={data.agents.slice(0, 10).map((a) => a.screenName)} scores={data.agents.slice(0, 10).map((a) => scoreFor(data, a.id) ?? 0)} /></div>
+      {/* Tab strip */}
+      <div className="flex flex-wrap gap-1">
+        {ANALYTICS_TABS.map((t) => (
+          <button key={t} className={`aim-btn text-[10px] ${tab === t ? "font-bold bg-[var(--aim-blue-light)]" : ""}`} onClick={() => setTab(t)}>{t}</button>
+        ))}
       </div>
+
+      {tab === "Overview" && (
+        <div className="space-y-3">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+            {topScored.map((a) => (
+              <div key={a.id} className="chart-box"><div className="chart-title">🏆 {a.screenName}</div><ScoreGauge score={scoreFor(data, a.id) ?? 0} label="Trust Score" /></div>
+            ))}
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="chart-box"><div className="chart-title">Score Distribution</div><ScoreDistributionHistogram scores={scores} /></div>
+            <div className="chart-box"><div className="chart-title">Protocol Mix</div><ProtocolMixPolar counts={protocolCounts} /></div>
+            <div className="chart-box"><div className="chart-title">Agent Status Mix</div><StatusMixDoughnut counts={statusCounts} /></div>
+            <div className="chart-box"><div className="chart-title">Operator Fleet Sizes</div><OperatorFleetBar operators={Object.keys(operatorCounts)} counts={Object.values(operatorCounts)} /></div>
+            <div className="chart-box sm:col-span-2"><div className="chart-title">Registry Onboarding (daily + cumulative)</div><OnboardingMixedChart labels={["6d","5d","4d","3d","2d","1d","now"]} daily={onboardDaily} cumulative={onboardCumulative} /></div>
+            <div className="chart-box sm:col-span-2"><div className="chart-title">Top Agents by Score</div><ScoreComparatorBar names={data.agents.slice(0, 10).map((a) => a.screenName)} scores={data.agents.slice(0, 10).map((a) => scoreFor(data, a.id) ?? 0)} /></div>
+          </div>
+        </div>
+      )}
+
+      {tab === "Reputation" && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="chart-box sm:col-span-2"><div className="chart-title">Avg Score Trend by Protocol</div><ScoreTrendMultiLine series={trendSeries} labels={trendLabels} /></div>
+          <div className="chart-box"><div className="chart-title">Trust-Tier Population (trend)</div><TrustTierAreaChart series={tierSeries} /></div>
+          <div className="chart-box"><div className="chart-title">Warning-Tier Breakdown</div><WarningDistributionBar buckets={buckets} /></div>
+          <div className="chart-box"><div className="chart-title">Capability Coverage (top 6)</div><CapabilityCoverageRadar labels={topCaps.map((c) => c[0])} values={topCaps.map((c) => c[1])} /></div>
+          <div className="chart-box"><div className="chart-title">Cluster Spread</div><ReputationScatter points={data.agents.map((a, i) => { const w = warningFor(data, a.id); const bad = (w?.warningPct ?? 0) > 60; const angle = (i / data.agents.length) * Math.PI * 2; return { x: (bad ? 8 : 4) + Math.cos(angle) * (bad ? 1.2 : 3), y: (scoreFor(data, a.id) ?? 500) / 100, label: `${a.screenName} (${scoreFor(data, a.id)})`, color: bad ? "#c1121f" : "#2e8b22" }; })} /></div>
+          <div className="chart-box sm:col-span-2"><div className="chart-title">Agent Risk Map (score × warning × connectivity)</div><AgentBubbleChart points={bubblePoints} /></div>
+        </div>
+      )}
+
+      {tab === "Moderation" && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="chart-box"><div className="chart-title">Moderation Flags</div><ModerationBreakdownPie counts={Object.keys(modCounts).length ? modCounts : { benign: 1 }} /></div>
+          <div className="chart-box"><div className="chart-title">Dispute Reasons</div><DisputeReasonPolar counts={disputeReasons} /></div>
+          <div className="chart-box sm:col-span-2"><div className="chart-title">Moderation Outcomes by Flag Type</div><ModerationOutcomeStacked labels={modFlags} approved={modApproved} timeout={modTimeout} revoked={modRevoked} pending={modPending} /></div>
+          <div className="chart-box sm:col-span-2"><div className="chart-title">Disputes Trend</div><DisputesTrendBar counts={disputeWeeks} /></div>
+        </div>
+      )}
+
+      {tab === "Federation" && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div className="chart-box sm:col-span-2"><div className="chart-title">Peer Sync Activity (outbound vs inbound)</div><FederationGroupedBar peers={peerNames.length ? peerNames : ["none"]} outbound={peerOutbound.length ? peerOutbound : [0]} inbound={peerInbound.length ? peerInbound : [0]} /></div>
+          <div className="chart-box"><div className="chart-title">Protocol Mix (federated schema sources)</div><ProtocolMixPolar counts={protocolCounts} /></div>
+          <div className="chart-box"><div className="chart-title">Trust-Tier Population</div><WarningDistributionBar buckets={buckets} /></div>
+        </div>
+      )}
     </div>
   );
 }

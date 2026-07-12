@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { useAimStore, sounds, WindowKey } from "@/lib/store";
+import { useAimStore, sounds, setSoundEnabled, WindowKey } from "@/lib/store";
 import { useIsMobile } from "@/lib/useIsMobile";
 import { RetroWindow, Toolbar2000, MobileWindow } from "@/components/retro/Chrome";
 import { Taskbar, APPS } from "@/components/retro/Taskbar";
@@ -35,6 +35,9 @@ export default function DesktopPage() {
   useEffect(() => {
     const personaId = Number(localStorage.getItem("aim_persona_id") ?? "0") || null;
     store.setPersona(personaId);
+    // Sync the imperative sound helper with the current store toggle state so the
+    // taskbar 🔊/🔇 button actually controls whether cues play (fixes sound toggle).
+    setSoundEnabled(store.soundOn);
     store.openWindow("buddylist", "My Buddy List");
     refresh();
     const id = setInterval(refresh, 4000);

@@ -52,6 +52,7 @@ export default function FeaturesPage() {
                   ))}
                 </tbody>
               </table>
+              </div>
             </div>
           ))}
           <div className="construction-banner mt-2">🚧 100 / 100 FEATURES LISTED — IDENTITY · REPUTATION · MODERATION ONLY 🚧</div>

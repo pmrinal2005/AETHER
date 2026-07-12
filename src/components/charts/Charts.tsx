@@ -336,3 +336,164 @@ export function ConfidenceGauge({ confidence, label }: { confidence: number; lab
     </div>
   );
 }
+
+// ===================== ENHANCED ANALYTICS CHARTS (Chart.js only) =====================
+// Additional retro-styled charts feeding the reimagined Analytics Command Center and
+// individual feature windows. All data is synthetic/dummy for demo purposes.
+
+const RETRO_COLORS = ["#0a246a", "#316ac5", "#ff8c00", "#2e8b57", "#8a2be2", "#c1121f", "#008080", "#b8860b"];
+
+// Multi-series line: registry average score trend split by protocol (mocked history).
+export function ScoreTrendMultiLine({ series, labels }: { series: { name: string; data: number[] }[]; labels: string[] }) {
+  const data = {
+    labels,
+    datasets: series.map((s, i) => ({
+      label: s.name,
+      data: s.data,
+      borderColor: RETRO_COLORS[i % RETRO_COLORS.length],
+      backgroundColor: RETRO_COLORS[i % RETRO_COLORS.length] + "44",
+      tension: 0.3,
+      pointRadius: 2,
+    })),
+  };
+  return (
+    <div style={{ height: 200 }}>
+      <Line data={data} options={{ ...baseOptions, scales: { y: { min: 0, max: 999 } } }} />
+    </div>
+  );
+}
+
+// Stacked bar: moderation outcomes (approved/timeout/revoked/pending) per flag type.
+export function ModerationOutcomeStacked({ labels, approved, timeout, revoked, pending }: {
+  labels: string[]; approved: number[]; timeout: number[]; revoked: number[]; pending: number[];
+}) {
+  const data = {
+    labels,
+    datasets: [
+      { label: "Approved", data: approved, backgroundColor: "#2e8b22" },
+      { label: "Timeout", data: timeout, backgroundColor: "#d8a900" },
+      { label: "Revoked", data: revoked, backgroundColor: "#c1121f" },
+      { label: "Pending", data: pending, backgroundColor: "#3a6ea5" },
+    ],
+  };
+  return (
+    <div style={{ height: 190 }}>
+      <Bar data={data} options={{ ...baseOptions, scales: { x: { stacked: true }, y: { stacked: true, ticks: { precision: 0 } } } }} />
+    </div>
+  );
+}
+
+// Horizontal bar: operator fleet sizes (agents per operator org).
+export function OperatorFleetBar({ operators, counts }: { operators: string[]; counts: number[] }) {
+  const data = {
+    labels: operators,
+    datasets: [{ label: "Agents", data: counts, backgroundColor: "#316ac5" }],
+  };
+  return (
+    <div style={{ height: 200 }}>
+      <Bar data={data} options={{ ...baseOptions, indexAxis: "y" as const, scales: { x: { ticks: { precision: 0 } } } }} />
+    </div>
+  );
+}
+
+// Radar: registry-wide capability coverage across capability tags.
+export function CapabilityCoverageRadar({ labels, values }: { labels: string[]; values: number[] }) {
+  const data = {
+    labels,
+    datasets: [{ label: "# Agents offering", data: values, backgroundColor: "rgba(138,43,226,0.30)", borderColor: "#8a2be2", pointBackgroundColor: "#8a2be2" }],
+  };
+  return (
+    <div style={{ height: 220 }}>
+      <Radar data={data} options={baseOptions} />
+    </div>
+  );
+}
+
+// Doughnut: agent status broadcast mix (active/busy/suspended/revoked).
+export function StatusMixDoughnut({ counts }: { counts: Record<string, number> }) {
+  const labels = Object.keys(counts);
+  const palette: Record<string, string> = { active: "#2e8b22", busy: "#d8a900", suspended: "#d2691e", revoked: "#c1121f" };
+  const data = {
+    labels,
+    datasets: [{ data: labels.map((l) => counts[l]), backgroundColor: labels.map((l) => palette[l] ?? "#3a6ea5") }],
+  };
+  return (
+    <div style={{ height: 170 }}>
+      <Doughnut data={data} options={baseOptions} />
+    </div>
+  );
+}
+
+// Mixed chart: bars = agents onboarded per day, line = cumulative registry size.
+export function OnboardingMixedChart({ labels, daily, cumulative }: { labels: string[]; daily: number[]; cumulative: number[] }) {
+  const data = {
+    labels,
+    datasets: [
+      { type: "bar" as const, label: "Onboarded", data: daily, backgroundColor: "#ff8c00", yAxisID: "y" },
+      { type: "line" as const, label: "Cumulative", data: cumulative, borderColor: "#0a246a", backgroundColor: "#0a246a", tension: 0.3, yAxisID: "y1" },
+    ],
+  };
+  return (
+    <div style={{ height: 190 }}>
+      <Bar
+        data={data as any}
+        options={{
+          ...baseOptions,
+          scales: {
+            y: { position: "left" as const, ticks: { precision: 0 } },
+            y1: { position: "right" as const, grid: { drawOnChartArea: false }, ticks: { precision: 0 } },
+          },
+        }}
+      />
+    </div>
+  );
+}
+
+// Federation health: outbound vs inbound sync counts per peer (grouped bar).
+export function FederationGroupedBar({ peers, outbound, inbound }: { peers: string[]; outbound: number[]; inbound: number[] }) {
+  const data = {
+    labels: peers,
+    datasets: [
+      { label: "Outbound", data: outbound, backgroundColor: "#8a2be2" },
+      { label: "Inbound", data: inbound, backgroundColor: "#2e8b57" },
+    ],
+  };
+  return (
+    <div style={{ height: 180 }}>
+      <Bar data={data} options={{ ...baseOptions, scales: { y: { ticks: { precision: 0 } } } }} />
+    </div>
+  );
+}
+
+// Small reusable score gauge (doughnut) for a single agent, 0-999.
+export function ScoreGauge({ score, label }: { score: number; label?: string }) {
+  const pct = Math.round((score / 999) * 100);
+  const color = score >= 700 ? "#2e8b22" : score >= 450 ? "#d8a900" : "#c1121f";
+  const data = {
+    labels: ["Score", "remaining"],
+    datasets: [{ data: [score, 999 - score], backgroundColor: [color, "#dfdccf"], borderWidth: 0 }],
+  };
+  return (
+    <div style={{ height: 130, position: "relative" }}>
+      <Doughnut data={data} options={{ ...baseOptions, cutout: "70%", plugins: { legend: { display: false }, tooltip: { enabled: false } } }} />
+      <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", pointerEvents: "none" }}>
+        <span style={{ fontSize: 22, fontWeight: 900, fontFamily: "Courier New, monospace", color }}>{score}</span>
+        <span style={{ fontSize: 8, textTransform: "uppercase", letterSpacing: 0.5, color: "#444" }}>{label ?? `${pct}%`}</span>
+      </div>
+    </div>
+  );
+}
+
+// Polar: dispute reasons distribution.
+export function DisputeReasonPolar({ counts }: { counts: Record<string, number> }) {
+  const labels = Object.keys(counts).length ? Object.keys(counts) : ["none"];
+  const data = {
+    labels,
+    datasets: [{ data: labels.map((l) => counts[l] ?? 1), backgroundColor: RETRO_COLORS }],
+  };
+  return (
+    <div style={{ height: 190 }}>
+      <PolarArea data={data} options={baseOptions} />
+    </div>
+  );
+}

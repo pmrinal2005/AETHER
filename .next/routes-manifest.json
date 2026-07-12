@@ -185,6 +185,12 @@
       "namedRegex": "^/features(?:/)?$"
     },
     {
+      "page": "/icon.svg",
+      "regex": "^/icon\\.svg(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/icon\\.svg(?:/)?$"
+    },
+    {
       "page": "/pitch",
       "regex": "^/pitch(?:/)?$",
       "routeKeys": {},

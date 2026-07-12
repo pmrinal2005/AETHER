@@ -24,6 +24,7 @@
   "/api/whois/route": "/api/whois",
   "/desktop/page": "/desktop",
   "/features/page": "/features",
+  "/icon.svg/route": "/icon.svg",
   "/page": "/",
   "/pitch/page": "/pitch"
 }
