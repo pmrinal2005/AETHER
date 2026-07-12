@@ -1,0 +1,212 @@
+{
+  "version": 3,
+  "pages404": true,
+  "appType": "app",
+  "caseSensitive": false,
+  "basePath": "",
+  "redirects": [
+    {
+      "source": "/:path+/",
+      "destination": "/:path+",
+      "internal": true,
+      "priority": true,
+      "statusCode": 308,
+      "regex": "^(?:/((?:[^/]+?)(?:/(?:[^/]+?))*))/$"
+    }
+  ],
+  "headers": [],
+  "onMatchHeaders": [],
+  "rewrites": {
+    "beforeFiles": [],
+    "afterFiles": [],
+    "fallback": []
+  },
+  "dynamicRoutes": [
+    {
+      "page": "/api/agents/[id]",
+      "regex": "^/api/agents/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/agents/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
+      "page": "/api/verify/[agentId]",
+      "regex": "^/api/verify/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPagentId": "nxtPagentId"
+      },
+      "namedRegex": "^/api/verify/(?<nxtPagentId>[^/]+?)(?:/)?$"
+    }
+  ],
+  "staticRoutes": [
+    {
+      "page": "/",
+      "regex": "^/(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/(?:/)?$"
+    },
+    {
+      "page": "/_global-error",
+      "regex": "^/_global\\-error(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/_global\\-error(?:/)?$"
+    },
+    {
+      "page": "/_not-found",
+      "regex": "^/_not\\-found(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/_not\\-found(?:/)?$"
+    },
+    {
+      "page": "/api/adapters/normalize",
+      "regex": "^/api/adapters/normalize(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/adapters/normalize(?:/)?$"
+    },
+    {
+      "page": "/api/agents",
+      "regex": "^/api/agents(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/agents(?:/)?$"
+    },
+    {
+      "page": "/api/auth",
+      "regex": "^/api/auth(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/auth(?:/)?$"
+    },
+    {
+      "page": "/api/bootcamp",
+      "regex": "^/api/bootcamp(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/bootcamp(?:/)?$"
+    },
+    {
+      "page": "/api/chat/simulate",
+      "regex": "^/api/chat/simulate(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/chat/simulate(?:/)?$"
+    },
+    {
+      "page": "/api/dashboard",
+      "regex": "^/api/dashboard(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/dashboard(?:/)?$"
+    },
+    {
+      "page": "/api/delegation-graph",
+      "regex": "^/api/delegation\\-graph(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/delegation\\-graph(?:/)?$"
+    },
+    {
+      "page": "/api/developer",
+      "regex": "^/api/developer(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/developer(?:/)?$"
+    },
+    {
+      "page": "/api/disputes",
+      "regex": "^/api/disputes(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/disputes(?:/)?$"
+    },
+    {
+      "page": "/api/federation",
+      "regex": "^/api/federation(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/federation(?:/)?$"
+    },
+    {
+      "page": "/api/health",
+      "regex": "^/api/health(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/health(?:/)?$"
+    },
+    {
+      "page": "/api/ml/moderate",
+      "regex": "^/api/ml/moderate(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/ml/moderate(?:/)?$"
+    },
+    {
+      "page": "/api/ml/score",
+      "regex": "^/api/ml/score(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/ml/score(?:/)?$"
+    },
+    {
+      "page": "/api/moderation-queue",
+      "regex": "^/api/moderation\\-queue(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/moderation\\-queue(?:/)?$"
+    },
+    {
+      "page": "/api/reputation-edges",
+      "regex": "^/api/reputation\\-edges(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/reputation\\-edges(?:/)?$"
+    },
+    {
+      "page": "/api/revocation",
+      "regex": "^/api/revocation(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/revocation(?:/)?$"
+    },
+    {
+      "page": "/api/seed",
+      "regex": "^/api/seed(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/seed(?:/)?$"
+    },
+    {
+      "page": "/api/status-broadcast",
+      "regex": "^/api/status\\-broadcast(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/status\\-broadcast(?:/)?$"
+    },
+    {
+      "page": "/api/whois",
+      "regex": "^/api/whois(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/whois(?:/)?$"
+    },
+    {
+      "page": "/desktop",
+      "regex": "^/desktop(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/desktop(?:/)?$"
+    },
+    {
+      "page": "/features",
+      "regex": "^/features(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/features(?:/)?$"
+    },
+    {
+      "page": "/pitch",
+      "regex": "^/pitch(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/pitch(?:/)?$"
+    }
+  ],
+  "dataRoutes": [],
+  "rsc": {
+    "header": "rsc",
+    "varyHeader": "rsc, next-router-state-tree, next-router-prefetch, next-router-segment-prefetch",
+    "prefetchHeader": "next-router-prefetch",
+    "didPostponeHeader": "x-nextjs-postponed",
+    "contentTypeHeader": "text/x-component",
+    "suffix": ".rsc",
+    "prefetchSegmentHeader": "next-router-segment-prefetch",
+    "prefetchSegmentSuffix": ".segment.rsc",
+    "prefetchSegmentDirSuffix": ".segments",
+    "clientParamParsing": false,
+    "dynamicRSCPrerender": false
+  },
+  "rewriteHeaders": {
+    "pathHeader": "x-nextjs-rewritten-path",
+    "queryHeader": "x-nextjs-rewritten-query"
+  }
+}

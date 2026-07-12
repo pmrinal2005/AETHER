@@ -3,6 +3,7 @@ import { create } from "zustand";
 
 export type WindowKey =
   | "buddylist"
+  | "analytics"
   | "whois"
   | "yellowpages"
   | "newbuddy"
@@ -53,7 +54,12 @@ export const useAimStore = create<AimState>((set, get) => ({
   windows: [],
   notifications: [],
   setPersona: (id) => set({ currentPersonaId: id }),
-  toggleSound: () => set((s) => ({ soundOn: !s.soundOn })),
+  toggleSound: () =>
+    set((s) => {
+      const next = !s.soundOn;
+      setSoundEnabled(next);
+      return { soundOn: next };
+    }),
   openWindow: (key, title, data) => {
     const existing = get().windows.find((w) => w.key === key);
     zCounter += 1;
@@ -93,7 +99,15 @@ function ctx() {
   return audioCtx;
 }
 
+// Global mute flag mirrored from the Zustand store so the imperative `sounds`
+// helper (called from many components) can respect the taskbar 🔊/🔇 toggle.
+let soundEnabled = true;
+export function setSoundEnabled(on: boolean) {
+  soundEnabled = on;
+}
+
 function beep(freqs: number[], durations: number[], gain = 0.05) {
+  if (!soundEnabled) return;
   const c = ctx();
   if (!c) return;
   let t = c.currentTime;

@@ -2,8 +2,85 @@
 import { useMemo, useState } from "react";
 import { sounds } from "@/lib/store";
 import { BuddyIcon, WarningMeter } from "@/components/retro/Chrome";
-import { ReputationScatter, ModerationBreakdownPie, WarningDistributionBar } from "@/components/charts/Charts";
+import {
+  ReputationScatter, ModerationBreakdownPie, WarningDistributionBar,
+  ProtocolMixPolar, ScoreDistributionHistogram, TrustTierAreaChart,
+  AgentBubbleChart, ScoreComparatorBar, DisputesTrendBar,
+} from "@/components/charts/Charts";
 import { DashboardData, agentName, scoreFor, warningFor } from "@/lib/types";
+
+// ---------------- Analytics Command Center (registry-wide charts hub) ----------------
+export function AnalyticsDashboardPanel({ data }: { data: DashboardData }) {
+  const scores = data.agents.map((a) => scoreFor(data, a.id) ?? 0);
+  const avgScore = scores.length ? Math.round(scores.reduce((x, y) => x + y, 0) / scores.length) : 0;
+
+  const protocolCounts: Record<string, number> = {};
+  data.agents.forEach((a) => { protocolCounts[a.protocolType] = (protocolCounts[a.protocolType] ?? 0) + 1; });
+
+  const buckets: Record<string, number> = { trusted: 0, review: 0, probation: 0, blocked: 0 };
+  data.warnings.forEach((w) => { buckets[w.status] = (buckets[w.status] ?? 0) + 1; });
+
+  const modCounts: Record<string, number> = {};
+  data.moderationQueue.forEach((m) => { modCounts[m.flagType] = (modCounts[m.flagType] ?? 0) + 1; });
+
+  // Mocked historical trust-tier population trend (demo/dummy data).
+  const tierSeries = [0, 1, 2, 3, 4].map((i) => ({
+    label: `T-${4 - i}`,
+    trusted: Math.max(0, buckets.trusted - (4 - i) + Math.round(Math.sin(i) * 1)),
+    review: Math.max(0, buckets.review + (4 - i) - 1),
+    probation: Math.max(0, buckets.probation + ((4 - i) % 2)),
+    blocked: Math.max(0, buckets.blocked),
+  }));
+
+  const bubblePoints = data.agents.map((a) => {
+    const w = warningFor(data, a.id);
+    const score = scoreFor(data, a.id) ?? 500;
+    const conns = data.edges.filter((e) => e.fromAgentId === a.id || e.toAgentId === a.id).length;
+    const bad = (w?.warningPct ?? 0) > 60;
+    return { x: score, y: w?.warningPct ?? 0, r: 5 + conns * 1.5, label: `${a.screenName} (${score})`, color: bad ? "#c1121f" : "#2e8b22" };
+  });
+
+  const disputeWeeks = [0, 1, 2, 3].map((wk) => data.disputes.filter((_, i) => i % 4 === wk).length + wk);
+
+  const flagged = data.moderationQueue.length;
+  const pending = data.moderationQueue.filter((m) => m.status === "pending").length;
+
+  const stats = [
+    { num: data.agents.length, label: "Agents" },
+    { num: avgScore, label: "Avg Score" },
+    { num: buckets.trusted, label: "Trusted" },
+    { num: buckets.probation + buckets.blocked, label: "At Risk" },
+    { num: pending, label: "Mod Pending" },
+    { num: data.peers.length, label: "Fed Peers" },
+  ];
+
+  return (
+    <div className="p-3 space-y-3">
+      <div className="pixel-heading text-[12px]">📊 Trust Analytics Command Center</div>
+      <div className="text-[10px] text-gray-600">Registry-wide dashboard — all charts rendered with Chart.js. Data is synthetic/dummy for demo.</div>
+
+      <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+        {stats.map((s) => (
+          <div key={s.label} className="aim-stat">
+            <span className="stat-num">{s.num}</span>
+            <span className="stat-label">{s.label}</span>
+          </div>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="chart-box"><div className="chart-title">Score Distribution</div><ScoreDistributionHistogram scores={scores} /></div>
+        <div className="chart-box"><div className="chart-title">Protocol Mix</div><ProtocolMixPolar counts={protocolCounts} /></div>
+        <div className="chart-box"><div className="chart-title">Trust-Tier Population (trend)</div><TrustTierAreaChart series={tierSeries} /></div>
+        <div className="chart-box"><div className="chart-title">Warning-Tier Breakdown</div><WarningDistributionBar buckets={buckets} /></div>
+        <div className="chart-box"><div className="chart-title">Moderation Flags</div><ModerationBreakdownPie counts={Object.keys(modCounts).length ? modCounts : { benign: 1 }} /></div>
+        <div className="chart-box"><div className="chart-title">Disputes Trend</div><DisputesTrendBar counts={disputeWeeks} /></div>
+        <div className="chart-box sm:col-span-2"><div className="chart-title">Agent Risk Map (score × warning × connectivity)</div><AgentBubbleChart points={bubblePoints} /></div>
+        <div className="chart-box sm:col-span-2"><div className="chart-title">Top Agents by Score</div><ScoreComparatorBar names={data.agents.slice(0, 10).map((a) => a.screenName)} scores={data.agents.slice(0, 10).map((a) => scoreFor(data, a.id) ?? 0)} /></div>
+      </div>
+    </div>
+  );
+}
 
 // ---------------- Dynamic Reputation Graph Visualizer (Feature #16, #22) ----------------
 export function ReputationGraphPanel({ data }: { data: DashboardData }) {
@@ -21,11 +98,20 @@ export function ReputationGraphPanel({ data }: { data: DashboardData }) {
   const direct = data.edges.filter((e) => e.edgeType === "direct").length;
   const gossip = data.edges.filter((e) => e.edgeType === "gossip").length;
 
+  const bubblePoints = data.agents.map((a) => {
+    const w = warningFor(data, a.id);
+    const score = scoreFor(data, a.id) ?? 500;
+    const conns = data.edges.filter((e) => e.fromAgentId === a.id || e.toAgentId === a.id).length;
+    const bad = (w?.warningPct ?? 0) > 60;
+    return { x: score, y: w?.warningPct ?? 0, r: 5 + conns * 1.5, label: `${a.screenName} — ${conns} links`, color: bad ? "#c1121f" : "#2e8b22" };
+  });
+
   return (
     <div className="p-3 space-y-2">
       <div className="pixel-heading text-[12px]">🕸️ Dynamic Reputation Graph Visualizer</div>
       <div className="text-[11px]">Direct edges: <b>{direct}</b> | Gossip edges: <b>{gossip}</b>. Isolated red cluster = flagged bad actors.</div>
-      <ReputationScatter points={points} />
+      <div className="chart-box"><div className="chart-title">Cluster Spread vs Trust Weight</div><ReputationScatter points={points} /></div>
+      <div className="chart-box"><div className="chart-title">Connectivity Bubble Map (size = # of edges)</div><AgentBubbleChart points={bubblePoints} /></div>
       <div className="flex gap-3 text-[10px]">
         <span><span className="status-dot status-trusted" /> Cooperative cluster</span>
         <span><span className="status-dot status-blocked" /> Isolated bad actor</span>

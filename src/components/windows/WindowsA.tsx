@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { useAimStore, sounds } from "@/lib/store";
 import { BuddyIcon, StatusDot } from "@/components/retro/Chrome";
-import { CooperationDoughnut, ScoreHistoryChart } from "@/components/charts/Charts";
+import { CooperationDoughnut, ScoreHistoryChart, BootcampRoundsLine, CapabilityRadar } from "@/components/charts/Charts";
 import { DashboardData, scoreFor, warningFor, statusFor } from "@/lib/types";
 
 // ---------------- AgentWhois Lookup (Feature #2) ----------------
@@ -245,8 +245,18 @@ export function BootcampPanel({ data, refresh, presetAgentId }: { data: Dashboar
       )}
       {result && (
         <div className="space-y-2">
-          <div className="text-[11px]">Cooperation Rate: <b>{Math.round(result.cooperationRate * 100)}%</b> | Bootstrap Score: <b>{result.bootstrapScore}</b> | Final Score: <b>{result.finalScore}</b></div>
-          <CooperationDoughnut rate={result.cooperationRate} />
+          <div className="grid grid-cols-3 gap-2">
+            <div className="aim-stat"><span className="stat-num">{Math.round(result.cooperationRate * 100)}%</span><span className="stat-label">Coop Rate</span></div>
+            <div className="aim-stat"><span className="stat-num">{result.bootstrapScore}</span><span className="stat-label">Bootstrap</span></div>
+            <div className="aim-stat"><span className="stat-num">{result.finalScore}</span><span className="stat-label">Final Score</span></div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <div className="chart-box"><div className="chart-title">Cooperation Ratio</div><CooperationDoughnut rate={result.cooperationRate} /></div>
+            <div className="chart-box"><div className="chart-title">Round-by-Round Decisions</div>
+              <BootcampRoundsLine rounds={(result.roundLogs ?? []).map((r: any, i: number) => ({ round: i + 1, coop: r.candidateMove === "cooperate" ? 1 : 0 }))} />
+            </div>
+          </div>
+          <div className="text-[10px] text-gray-600">Played vs 3 fixed reference personas (Cooperative · Adversarial · Mixed Tit-for-Tat) × 6 rounds each = 18 rounds. Synthetic/dummy simulation.</div>
         </div>
       )}
     </div>

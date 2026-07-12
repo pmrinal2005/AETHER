@@ -2,8 +2,9 @@
 import { useEffect, useState } from "react";
 import { useAimStore, WindowKey } from "@/lib/store";
 
-const APPS: { key: WindowKey; label: string; icon: string }[] = [
+export const APPS: { key: WindowKey; label: string; icon: string }[] = [
   { key: "buddylist", label: "Buddy List", icon: "👥" },
+  { key: "analytics", label: "Analytics Center", icon: "📊" },
   { key: "whois", label: "AgentWhois", icon: "🔍" },
   { key: "yellowpages", label: "Yellow Pages", icon: "📒" },
   { key: "newbuddy", label: "New Buddy Setup", icon: "🧙" },

@@ -1,7 +1,8 @@
 "use client";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useAimStore, sounds } from "@/lib/store";
-import { BuddyIcon, StatusDot, Marquee } from "@/components/retro/Chrome";
+import { BuddyIcon, StatusDot, Marquee, WarningMeter } from "@/components/retro/Chrome";
+import { ScoreBreakdownBar, CapabilityRadar } from "@/components/charts/Charts";
 import { DashboardData, scoreFor, warningFor, statusFor, agentName } from "@/lib/types";
 
 // ---------------- Buddy List (Feature #41-42, #52-55) ----------------
@@ -212,6 +213,9 @@ export function AgentProfilePanel({ agentId, personaId, data, refresh, reportOpe
   const [reason, setReason] = useState("");
   const [submitted, setSubmitted] = useState<string | null>(null);
 
+  const breakdown = (data.latestScores.find((s) => s.agent_id === agentId)?.score_breakdown ?? {}) as Record<string, number>;
+  const caps = (agent?.capabilities || []).slice(0, 6);
+
   if (!agent) return <div className="p-3 text-[11px]">Agent not found.</div>;
 
   const submitReport = async () => {
@@ -238,11 +242,19 @@ export function AgentProfilePanel({ agentId, personaId, data, refresh, reportOpe
       </div>
       <div className="aim-inset p-2 text-[11px] space-y-1">
         <div>AgentScore: <b>{score ?? "—"} / 999</b></div>
-        <div>Warning Level: <b>{(warning?.warningPct ?? 0).toFixed(0)}%</b> ({warning?.status})</div>
+        <WarningMeter pct={warning?.warningPct ?? 0} status={warning?.status ?? "trusted"} />
         <div>Status: <b className="uppercase">{st?.status}</b> — {st?.message}</div>
         <div>Protocol: {agent.protocolType} | Capabilities: {(agent.capabilities || []).join(", ")}</div>
         <div>Bootcamp: {agent.bootcampComplete ? "✅ Certified" : "⏳ Pending"}</div>
       </div>
+      {Object.keys(breakdown).length > 0 && (
+        <div className="chart-box"><div className="chart-title">Score Breakdown (components)</div><ScoreBreakdownBar breakdown={breakdown} /></div>
+      )}
+      {caps.length > 0 && (
+        <div className="chart-box"><div className="chart-title">Capability Coverage</div>
+          <CapabilityRadar labels={caps} values={caps.map((_, i) => 40 + ((i * 37 + agent.id * 13) % 60))} />
+        </div>
+      )}
       <div className="flex gap-2">
         <button className="aim-btn text-[11px] bg-red-100" onClick={() => setShowReport((s) => !s)}>🚩 Report Abuse</button>
       </div>

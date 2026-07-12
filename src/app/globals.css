@@ -174,3 +174,84 @@ body {
   padding: 2px 0;
   font-size: 11px;
 }
+
+/* ---------- Stat cards / metric tiles ---------- */
+.aim-stat {
+  border-top: 1px solid var(--aim-highlight);
+  border-left: 1px solid var(--aim-highlight);
+  border-right: 1px solid var(--aim-shadow);
+  border-bottom: 1px solid var(--aim-shadow);
+  background: var(--aim-face);
+  padding: 6px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.aim-stat .stat-num { font-size: 20px; font-weight: 900; line-height: 1; color: var(--aim-blue-dark); font-family: "Courier New", monospace; }
+.aim-stat .stat-label { font-size: 9px; text-transform: uppercase; letter-spacing: 0.5px; color: #444; }
+
+.chart-box {
+  background: white;
+  border-top: 1px solid var(--aim-shadow);
+  border-left: 1px solid var(--aim-shadow);
+  border-right: 1px solid var(--aim-highlight);
+  border-bottom: 1px solid var(--aim-highlight);
+  padding: 6px;
+}
+.chart-title { font-size: 10px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px; color: var(--aim-blue-dark); }
+
+/* ---------- Mobile responsiveness ---------- */
+/* On phones the draggable desktop is replaced by a stacked, scrollable
+   full-width panel view. Windows become mobile "cards" and a bottom nav
+   bar replaces the taskbar's window buttons. */
+.mobile-shell {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.mobile-window {
+  border: 2px solid var(--aim-blue-dark);
+  background: var(--aim-face);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+.mobile-window-body { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+
+.mobile-nav {
+  display: flex;
+  overflow-x: auto;
+  gap: 4px;
+  padding: 4px;
+  background: var(--aim-face);
+  border-top: 2px solid var(--aim-blue-dark);
+  flex-shrink: 0;
+}
+.mobile-nav button {
+  flex-shrink: 0;
+  min-width: 54px;
+  font-size: 9px;
+  padding: 4px 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+@media (max-width: 767px) {
+  body { overflow: auto; }
+  .hide-mobile { display: none !important; }
+  .aim-inset .grid-cols-2 { grid-template-columns: 1fr; }
+}
+.show-mobile { display: none; }
+@media (max-width: 767px) {
+  .show-mobile { display: block; }
+}
+
+/* Larger tap targets on touch devices */
+@media (pointer: coarse) {
+  .aim-btn { padding: 6px 12px; }
+}

@@ -1,0 +1,3 @@
+module.exports=[27572,a=>{"use strict";var b=a.i(7997);a.s(["default",0,function({children:a}){return(0,b.jsx)("html",{lang:"en",children:(0,b.jsx)("body",{className:"antialiased",children:a})})},"metadata",0,{title:"A.I.M. — Agent Instant Messenger & Identity Manager",description:"The Switzerland of Agent Trust — dressed as your old Buddy List. A W3C-standards-based Agent Passport + Trust Score + Revocation infrastructure, delivered through a pixel-perfect Windows-XP-era AIM/ICQ desktop."}])},50645,a=>{a.n(a.i(27572))}];
+
+//# sourceMappingURL=src_app_layout_tsx_0fhx__n._.js.map

@@ -1,0 +1,3 @@
+{
+  "/api/ml/score/route": "app/api/ml/score/route.js"
+}

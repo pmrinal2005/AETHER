@@ -26,7 +26,8 @@ export default function FeaturesPage() {
           {FEATURE_CATEGORIES.map((cat) => (
             <div key={cat} className="mb-5">
               <div className="bg-[var(--aim-blue-dark)] text-white px-2 py-1 text-[12px] font-bold">{cat}</div>
-              <table className="w-full text-[11px] border-collapse">
+              <div className="overflow-x-auto">
+              <table className="w-full text-[11px] border-collapse min-w-[520px]">
                 <tbody>
                   {FEATURES.filter((f) => f.category === cat).map((f) => (
                     <tr key={f.id} className="odd:bg-white even:bg-[#f3f1e6] border-b border-gray-300">

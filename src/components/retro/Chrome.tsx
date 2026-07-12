@@ -97,6 +97,20 @@ export function Marquee({ text }: { text: string }) {
   );
 }
 
+// Mobile shell window: a single full-screen retro window with a header and a
+// scrollable body. Used on phone viewports instead of the draggable desktop.
+export function MobileWindow({ title, onClose, children }: { title: string; onClose?: () => void; children: ReactNode }) {
+  return (
+    <div className="mobile-window">
+      <div className="aim-titlebar shrink-0">
+        <span className="truncate">{title}</span>
+        {onClose && <div className="aim-titlebtn" onClick={onClose}>×</div>}
+      </div>
+      <div className="mobile-window-body bg-[var(--aim-face)] text-[12px]">{children}</div>
+    </div>
+  );
+}
+
 export function Toolbar2000({ onAction }: { onAction: (action: string) => void }) {
   const [pos, setPos] = useState({ x: 20, y: 20 });
   return (
