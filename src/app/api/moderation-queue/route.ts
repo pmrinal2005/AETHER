@@ -1,62 +1,66 @@
-import { db } from "@/db";
-import { moderationQueue, warningLevels, agents, statusBroadcast, revocationEvents, disputes } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { store, nextId } from "@/lib/datastore";
 import { warningStatusFromPct } from "@/lib/core";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const rows = await db.select().from(moderationQueue);
-  return Response.json({ queue: rows });
+  const s = store();
+  return Response.json({ queue: s.moderationQueue });
 }
 
 // AI Moderator Buddy actions: Approve / Timeout / Revoke
 export async function PATCH(req: Request) {
+  const s = store();
   const body = await req.json();
   const { id, action, reviewedBy } = body as { id: number; action: "approved" | "timeout" | "revoked"; reviewedBy: string };
 
-  const [item] = await db.select().from(moderationQueue).where(eq(moderationQueue.id, id));
+  const item = s.moderationQueue.find((m) => m.id === id);
   if (!item) return Response.json({ error: "not found" }, { status: 404 });
 
-  await db.update(moderationQueue).set({ status: action, reviewedBy }).where(eq(moderationQueue.id, id));
+  item.status = action;
+  item.reviewedBy = reviewedBy;
 
   if (action === "approved") {
     return Response.json({ ok: true });
   }
 
   // Timeout or Revoke increases the warning meter and cascades status.
-  const [warning] = await db.select().from(warningLevels).where(eq(warningLevels.agentId, item.agentId));
+  const warning = s.warningLevels.find((w) => w.agentId === item.agentId);
   const bump = action === "revoked" ? 45 : 20;
   const newPct = Math.min(100, (warning?.warningPct ?? 0) + bump);
   const newStatus = action === "revoked" ? "blocked" : warningStatusFromPct(newPct);
 
   if (warning) {
-    await db
-      .update(warningLevels)
-      .set({ warningPct: newPct, status: newStatus, lastIncidentAt: new Date() })
-      .where(eq(warningLevels.agentId, item.agentId));
+    warning.warningPct = newPct;
+    warning.status = newStatus;
+    warning.lastIncidentAt = new Date().toISOString();
   } else {
-    await db.insert(warningLevels).values({ agentId: item.agentId, warningPct: newPct, status: newStatus, lastIncidentAt: new Date() });
+    s.warningLevels.push({ id: nextId("warningLevels"), agentId: item.agentId, warningPct: newPct, status: newStatus, lastIncidentAt: new Date().toISOString() });
   }
 
   const agentStatus = action === "revoked" ? "revoked" : newStatus === "blocked" ? "blocked" : "active";
-  await db.update(agents).set({ status: agentStatus }).where(eq(agents.id, item.agentId));
+  const agent = s.agents.find((a) => a.id === item.agentId);
+  if (agent) agent.status = agentStatus;
 
-  await db
-    .insert(statusBroadcast)
-    .values({ agentId: item.agentId, status: action === "revoked" ? "revoked" : "suspended", message: `Moderation action: ${action}` })
-    .onConflictDoUpdate({
-      target: statusBroadcast.agentId,
-      set: { status: action === "revoked" ? "revoked" : "suspended", message: `Moderation action: ${action}`, updatedAt: new Date() },
-    });
+  const broadcastStatus = action === "revoked" ? "revoked" : "suspended";
+  const st = s.statusBroadcast.find((x) => x.agentId === item.agentId);
+  if (st) {
+    st.status = broadcastStatus;
+    st.message = `Moderation action: ${action}`;
+    st.updatedAt = new Date().toISOString();
+  } else {
+    s.statusBroadcast.push({ id: nextId("statusBroadcast"), agentId: item.agentId, status: broadcastStatus, message: `Moderation action: ${action}`, updatedAt: new Date().toISOString() });
+  }
 
-  await db.update(disputes).set({ status: "resolved" }).where(eq(disputes.reportedAgentId, item.agentId));
+  s.disputes.filter((d) => d.reportedAgentId === item.agentId).forEach((d) => (d.status = "resolved"));
 
   if (action === "revoked") {
-    await db.insert(revocationEvents).values({
+    s.revocationEvents.push({
+      id: nextId("revocationEvents"),
       agentId: item.agentId,
       eventType: "revoked",
       payload: { reason: item.flagType, moderationQueueId: id, timestamp: new Date().toISOString() },
+      createdAt: new Date().toISOString(),
     });
   }
 

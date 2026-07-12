@@ -1,7 +1,5 @@
-import { db } from "@/db";
-import { chatMessages, moderationQueue, agents } from "@/db/schema";
+import { store, nextId } from "@/lib/datastore";
 import { classifyModeration } from "@/lib/core";
-import { eq } from "drizzle-orm";
 
 export const dynamic = "force-dynamic";
 
@@ -20,13 +18,15 @@ const NEGOTIATION_LINES = [
 ];
 
 export async function GET(req: Request) {
+  const s = store();
   const { searchParams } = new URL(req.url);
   const roomId = searchParams.get("roomId") ?? "demo-room";
-  const rows = await db.select().from(chatMessages).where(eq(chatMessages.roomId, roomId)).orderBy(chatMessages.id);
+  const rows = s.chatMessages.filter((m) => m.roomId === roomId).sort((a, b) => a.id - b.id);
   return Response.json({ messages: rows });
 }
 
 export async function POST(req: Request) {
+  const s = store();
   const body = await req.json();
   const { roomId, fromAgentId, fromLabel, turn } = body as {
     roomId: string;
@@ -39,12 +39,29 @@ export async function POST(req: Request) {
   const { flagType, confidence } = classifyModeration(line);
   const flagged = flagType !== "benign";
 
-  const [message] = await db.insert(chatMessages).values({ roomId, fromAgentId, fromLabel, body: line, flagged }).returning();
+  const message = {
+    id: nextId("chatMessages"),
+    roomId,
+    fromAgentId,
+    fromLabel,
+    body: line,
+    flagged,
+    createdAt: new Date().toISOString(),
+  };
+  s.chatMessages.push(message);
 
   let moderationEntry = null;
   if (flagged && fromAgentId) {
-    const [entry] = await db.insert(moderationQueue).values({ agentId: fromAgentId, flagType, aiConfidence: confidence, status: "pending" }).returning();
-    moderationEntry = entry;
+    moderationEntry = {
+      id: nextId("moderationQueue"),
+      agentId: fromAgentId,
+      flagType,
+      aiConfidence: confidence,
+      status: "pending",
+      reviewedBy: null,
+      createdAt: new Date().toISOString(),
+    };
+    s.moderationQueue.push(moderationEntry);
   }
 
   return Response.json({ message, moderation: moderationEntry });

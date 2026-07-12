@@ -1,11 +1,12 @@
 import crypto from "node:crypto";
 import { cookies } from "next/headers";
+import { hashPassword as coreHashPassword } from "./core";
 
 const SESSION_SECRET = process.env.SESSION_SECRET || "aim-demo-session-secret";
 export const SESSION_COOKIE = "aim_session";
 
 export function hashPassword(password: string): string {
-  return crypto.createHash("sha256").update(password + SESSION_SECRET).digest("hex");
+  return coreHashPassword(password);
 }
 
 export function signSession(payload: Record<string, unknown>): string {

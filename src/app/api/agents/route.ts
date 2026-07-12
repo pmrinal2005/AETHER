@@ -1,38 +1,40 @@
-import { db } from "@/db";
-import { agents, passports, credentials, warningLevels, statusBroadcast, scoresHistory } from "@/db/schema";
-import { generateDid, issuePassportBundle, normalizeDescriptor, computeAgentScore } from "@/lib/core";
+import { store, nextId } from "@/lib/datastore";
+import { generateDid, issuePassportBundle, normalizeDescriptor, computeAgentScore, warningStatusFromPct } from "@/lib/core";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const rows = await db.select().from(agents);
-  return Response.json({ agents: rows });
+  const s = store();
+  return Response.json({ agents: [...s.agents].sort((a, b) => a.id - b.id) });
 }
 
 // Registration wizard final step: normalize descriptor -> create agent -> issue passport
 // -> generate buddy icon seed -> initialize warning/status rows -> bootstrap score row.
 export async function POST(req: Request) {
+  const s = store();
   const body = await req.json();
   const { protocolType, descriptor } = body as { protocolType: string; descriptor: unknown };
   const normalized = normalizeDescriptor(protocolType, descriptor);
 
-  const existing = await db.select().from(agents);
-  const screenName = normalized.screenName + (existing.some((a) => a.screenName === normalized.screenName) ? "_" + Math.floor(Math.random() * 999) : "");
+  const screenName =
+    normalized.screenName +
+    (s.agents.some((a) => a.screenName === normalized.screenName) ? "_" + Math.floor(Math.random() * 999) : "");
 
   const did = generateDid(screenName, normalized.protocolType);
-  const [agent] = await db
-    .insert(agents)
-    .values({
-      did,
-      screenName,
-      operatorName: normalized.operatorName,
-      capabilities: normalized.capabilities,
-      protocolType: normalized.protocolType,
-      buddyIconSeed: did,
-      status: "active",
-      bootcampComplete: false,
-    })
-    .returning();
+  const agent = {
+    id: nextId("agents"),
+    did,
+    screenName,
+    operatorName: normalized.operatorName,
+    capabilities: normalized.capabilities,
+    protocolType: normalized.protocolType,
+    buddyIconSeed: did,
+    buddyIconUrl: null,
+    createdAt: new Date().toISOString(),
+    status: "active",
+    bootcampComplete: false,
+  };
+  s.agents.push(agent);
 
   const bundle = issuePassportBundle({
     did,
@@ -42,22 +44,26 @@ export async function POST(req: Request) {
     protocolType: normalized.protocolType,
   });
 
-  await db.insert(passports).values({
+  s.passports.push({
+    id: nextId("passports"),
     agentId: agent.id,
     vcBundle: bundle,
     protocolEndpoints: normalized.endpoints,
-    expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 180),
+    issuedAt: new Date().toISOString(),
+    expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 180).toISOString(),
   });
 
-  await db.insert(credentials).values({
+  s.credentials.push({
+    id: nextId("credentials"),
     agentId: agent.id,
     credentialType: "operator-kyb",
     credentialData: { verifiedBy: "self-attested-demo" },
     verified: true,
+    rotatedAt: new Date().toISOString(),
   });
 
-  await db.insert(warningLevels).values({ agentId: agent.id, warningPct: 0, status: "trusted" });
-  await db.insert(statusBroadcast).values({ agentId: agent.id, status: "active", message: "Just joined A.I.M.! Awaiting Buddy Bootcamp." });
+  s.warningLevels.push({ id: nextId("warningLevels"), agentId: agent.id, warningPct: 0, lastIncidentAt: null, status: warningStatusFromPct(0) });
+  s.statusBroadcast.push({ id: nextId("statusBroadcast"), agentId: agent.id, status: "active", message: "Just joined A.I.M.! Awaiting Buddy Bootcamp.", updatedAt: new Date().toISOString() });
 
   const { score, breakdown } = computeAgentScore({
     cooperationRate: 0.5,
@@ -67,7 +73,7 @@ export async function POST(req: Request) {
     gossipAvg: 0.5,
     warningPct: 0,
   });
-  await db.insert(scoresHistory).values({ agentId: agent.id, score, scoreBreakdown: breakdown });
+  s.scoresHistory.push({ id: nextId("scoresHistory"), agentId: agent.id, score, scoreBreakdown: breakdown, computedAt: new Date().toISOString() });
 
   return Response.json({ agent, passportBundle: bundle, normalized });
 }

@@ -239,3 +239,10 @@ export function randomKey(prefix: string) {
 export function hashKey(key: string) {
   return crypto.createHash("sha256").update(key).digest("hex");
 }
+
+// Password hashing (kept here so the in-memory datastore can seed operators
+// without importing next/headers-bound code).
+const PASSWORD_SECRET = process.env.SESSION_SECRET || "aim-demo-session-secret";
+export function hashPassword(password: string): string {
+  return crypto.createHash("sha256").update(password + PASSWORD_SECRET).digest("hex");
+}

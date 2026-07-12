@@ -1,13 +1,13 @@
-import { db } from "@/db";
-import { sql } from "drizzle-orm";
+import { store } from "@/lib/datastore";
 
 export const dynamic = "force-dynamic";
 
+// Health check: confirms the in-memory dummy datastore is seeded and reachable.
 export async function GET() {
   try {
-    await db.execute(sql`select 1`);
-    return Response.json({ ok: true });
-  } catch {
-    return Response.json({ ok: false }, { status: 500 });
+    const s = store();
+    return Response.json({ ok: true, agents: s.agents.length, datastore: "in-memory-dummy" });
+  } catch (err) {
+    return Response.json({ ok: false, error: (err as Error).message }, { status: 500 });
   }
 }

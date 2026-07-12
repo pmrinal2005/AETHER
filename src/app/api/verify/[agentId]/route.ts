@@ -1,17 +1,18 @@
-import { db } from "@/db";
-import { agents, scoresHistory, warningLevels } from "@/db/schema";
-import { eq, desc } from "drizzle-orm";
+import { store } from "@/lib/datastore";
 
 export const dynamic = "force-dynamic";
 
 // Public "AIM Verified" badge API — used by the embeddable widget and Trust Query API.
 export async function GET(_req: Request, { params }: { params: Promise<{ agentId: string }> }) {
+  const s = store();
   const { agentId } = await params;
   const id = Number(agentId);
-  const [agent] = await db.select().from(agents).where(eq(agents.id, id));
+  const agent = s.agents.find((a) => a.id === id);
   if (!agent) return Response.json({ error: "not found" }, { status: 404 });
-  const [score] = await db.select().from(scoresHistory).where(eq(scoresHistory.agentId, id)).orderBy(desc(scoresHistory.computedAt)).limit(1);
-  const [warning] = await db.select().from(warningLevels).where(eq(warningLevels.agentId, id));
+  const score = [...s.scoresHistory.filter((r) => r.agentId === id)].sort(
+    (a, b) => new Date(b.computedAt).getTime() - new Date(a.computedAt).getTime()
+  )[0];
+  const warning = s.warningLevels.find((w) => w.agentId === id);
 
   return Response.json({
     did: agent.did,

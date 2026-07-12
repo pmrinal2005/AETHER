@@ -1,74 +1,59 @@
-import { db } from "@/db";
-import {
-  agents,
-  passports,
-  credentials,
-  scoresHistory,
-  disputes,
-  moderationQueue,
-  delegationGraph,
-  warningLevels,
-  statusBroadcast,
-  bootcampResults,
-  revocationEvents,
-} from "@/db/schema";
-import { eq, or, desc } from "drizzle-orm";
+import { store, nextId } from "@/lib/datastore";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const s = store();
   const { id } = await params;
   const agentId = Number(id);
-  const [agent] = await db.select().from(agents).where(eq(agents.id, agentId));
+  const agent = s.agents.find((a) => a.id === agentId);
   if (!agent) return Response.json({ error: "not found" }, { status: 404 });
 
-  const [passportRows, credRows, scoreRows, disputeRows, modRows, delegRows, warningRows, statusRows, bootcampRows] = await Promise.all([
-    db.select().from(passports).where(eq(passports.agentId, agentId)),
-    db.select().from(credentials).where(eq(credentials.agentId, agentId)),
-    db.select().from(scoresHistory).where(eq(scoresHistory.agentId, agentId)).orderBy(desc(scoresHistory.computedAt)),
-    db.select().from(disputes).where(or(eq(disputes.reportedAgentId, agentId), eq(disputes.reporterAgentId, agentId))),
-    db.select().from(moderationQueue).where(eq(moderationQueue.agentId, agentId)),
-    db.select().from(delegationGraph).where(or(eq(delegationGraph.parentAgentId, agentId), eq(delegationGraph.subAgentId, agentId))),
-    db.select().from(warningLevels).where(eq(warningLevels.agentId, agentId)),
-    db.select().from(statusBroadcast).where(eq(statusBroadcast.agentId, agentId)),
-    db.select().from(bootcampResults).where(eq(bootcampResults.agentId, agentId)),
-  ]);
+  const byNewest = <T extends { computedAt?: string }>(arr: T[]) =>
+    [...arr].sort((a, b) => new Date(b.computedAt ?? 0).getTime() - new Date(a.computedAt ?? 0).getTime());
 
   return Response.json({
     agent,
-    passports: passportRows,
-    credentials: credRows,
-    scoresHistory: scoreRows,
-    disputes: disputeRows,
-    moderationQueue: modRows,
-    delegations: delegRows,
-    warningLevel: warningRows[0] ?? null,
-    status: statusRows[0] ?? null,
-    bootcamp: bootcampRows[0] ?? null,
+    passports: s.passports.filter((p) => p.agentId === agentId),
+    credentials: s.credentials.filter((c) => c.agentId === agentId),
+    scoresHistory: byNewest(s.scoresHistory.filter((r) => r.agentId === agentId)),
+    disputes: s.disputes.filter((d) => d.reportedAgentId === agentId || d.reporterAgentId === agentId),
+    moderationQueue: s.moderationQueue.filter((m) => m.agentId === agentId),
+    delegations: s.delegationGraph.filter((d) => d.parentAgentId === agentId || d.subAgentId === agentId),
+    warningLevel: s.warningLevels.find((w) => w.agentId === agentId) ?? null,
+    status: s.statusBroadcast.find((st) => st.agentId === agentId) ?? null,
+    bootcamp: s.bootcampResults.find((b) => b.agentId === agentId) ?? null,
   });
 }
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
+  const s = store();
   const { id } = await params;
   const agentId = Number(id);
   const body = await req.json();
   const { action } = body as { action: "revoke" | "suspend" | "activate" };
 
   const newStatus = action === "revoke" ? "revoked" : action === "suspend" ? "suspended" : "active";
-  await db.update(agents).set({ status: newStatus }).where(eq(agents.id, agentId));
-  await db
-    .insert(statusBroadcast)
-    .values({ agentId, status: newStatus, message: action === "revoke" ? "Deauthorized by AIM Moderation." : "" })
-    .onConflictDoUpdate({
-      target: statusBroadcast.agentId,
-      set: { status: newStatus, message: action === "revoke" ? "Deauthorized by AIM Moderation." : "", updatedAt: new Date() },
-    });
+  const agent = s.agents.find((a) => a.id === agentId);
+  if (agent) agent.status = newStatus;
+
+  const st = s.statusBroadcast.find((x) => x.agentId === agentId);
+  const message = action === "revoke" ? "Deauthorized by AIM Moderation." : "";
+  if (st) {
+    st.status = newStatus;
+    st.message = message;
+    st.updatedAt = new Date().toISOString();
+  } else {
+    s.statusBroadcast.push({ id: nextId("statusBroadcast"), agentId, status: newStatus, message, updatedAt: new Date().toISOString() });
+  }
 
   if (action === "revoke") {
-    await db.insert(revocationEvents).values({
+    s.revocationEvents.push({
+      id: nextId("revocationEvents"),
       agentId,
       eventType: "revoked",
       payload: { reason: "manual-revoke", timestamp: new Date().toISOString() },
+      createdAt: new Date().toISOString(),
     });
   }
 

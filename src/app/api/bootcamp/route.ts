@@ -1,13 +1,12 @@
-import { db } from "@/db";
-import { agents, bootcampResults, scoresHistory } from "@/db/schema";
-import { eq } from "drizzle-orm";
+import { store, nextId } from "@/lib/datastore";
 import { BOOTCAMP_PERSONAS, runBootcampRound, computeAgentScore } from "@/lib/core";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(req: Request) {
+  const s = store();
   const { agentId } = (await req.json()) as { agentId: number };
-  const [agent] = await db.select().from(agents).where(eq(agents.id, agentId));
+  const agent = s.agents.find((a) => a.id === agentId);
   if (!agent) return Response.json({ error: "not found" }, { status: 404 });
 
   const roundLogs: Record<string, unknown>[] = [];
@@ -28,8 +27,15 @@ export async function POST(req: Request) {
   const cooperationRate = totalCoop / totalRounds;
   const bootstrapScore = Math.round(300 + cooperationRate * 600);
 
-  await db.insert(bootcampResults).values({ agentId, roundLogs, cooperationRate, bootstrapScore });
-  await db.update(agents).set({ bootcampComplete: true }).where(eq(agents.id, agentId));
+  s.bootcampResults.push({
+    id: nextId("bootcampResults"),
+    agentId,
+    roundLogs,
+    cooperationRate,
+    bootstrapScore,
+    createdAt: new Date().toISOString(),
+  });
+  agent.bootcampComplete = true;
 
   const { score, breakdown } = computeAgentScore({
     cooperationRate,
@@ -39,7 +45,7 @@ export async function POST(req: Request) {
     gossipAvg: 0.5,
     warningPct: 0,
   });
-  await db.insert(scoresHistory).values({ agentId, score, scoreBreakdown: breakdown });
+  s.scoresHistory.push({ id: nextId("scoresHistory"), agentId, score, scoreBreakdown: breakdown, computedAt: new Date().toISOString() });
 
   return Response.json({ roundLogs, cooperationRate, bootstrapScore, finalScore: score });
 }
