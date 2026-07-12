@@ -1,0 +1,176 @@
+@import "tailwindcss";
+
+:root {
+  --aim-blue-dark: #0a246a;
+  --aim-blue-mid: #3a6ea5;
+  --aim-blue-light: #a6caf0;
+  --aim-face: #ece9d8;
+  --aim-face-dark: #b8b5a2;
+  --aim-shadow: #716f64;
+  --aim-highlight: #ffffff;
+  --aim-trusted: #2e8b22;
+  --aim-review: #d8a900;
+  --aim-probation: #d2691e;
+  --aim-blocked: #c1121f;
+  --aim-offline: #7a7a7a;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  font-family: Tahoma, "MS Sans Serif", Verdana, Geneva, sans-serif;
+  background: var(--aim-face);
+  overflow: hidden;
+}
+
+.aim-desktop-bg {
+  background: linear-gradient(180deg, #1a5276 0%, #2e86ab 40%, #4fa1c9 70%, #86c5e0 100%);
+}
+
+.aim-window {
+  border: 2px solid var(--aim-blue-dark);
+  background: var(--aim-face);
+  box-shadow: 3px 3px 0 rgba(0,0,0,0.35), inset 1px 1px 0 var(--aim-highlight);
+}
+
+.aim-titlebar {
+  background: linear-gradient(180deg, #3a6ea5 0%, #0a246a 55%, #0a246a 100%);
+  color: white;
+  font-weight: bold;
+  font-size: 12px;
+  padding: 3px 4px 3px 6px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: move;
+  user-select: none;
+}
+
+.aim-btn {
+  background: var(--aim-face);
+  border-top: 1px solid var(--aim-highlight);
+  border-left: 1px solid var(--aim-highlight);
+  border-right: 1px solid var(--aim-shadow);
+  border-bottom: 1px solid var(--aim-shadow);
+  border-radius: 0;
+  padding: 3px 10px;
+  font-size: 11px;
+  font-family: Tahoma, sans-serif;
+  cursor: pointer;
+  color: #000;
+}
+.aim-btn:active {
+  border-top: 1px solid var(--aim-shadow);
+  border-left: 1px solid var(--aim-shadow);
+  border-right: 1px solid var(--aim-highlight);
+  border-bottom: 1px solid var(--aim-highlight);
+}
+.aim-btn:disabled {
+  color: #888;
+  cursor: default;
+}
+
+.aim-inset {
+  border-top: 1px solid var(--aim-shadow);
+  border-left: 1px solid var(--aim-shadow);
+  border-right: 1px solid var(--aim-highlight);
+  border-bottom: 1px solid var(--aim-highlight);
+  background: white;
+}
+
+.aim-panel {
+  border-top: 1px solid var(--aim-highlight);
+  border-left: 1px solid var(--aim-highlight);
+  border-right: 1px solid var(--aim-shadow);
+  border-bottom: 1px solid var(--aim-shadow);
+  background: var(--aim-face);
+}
+
+.aim-titlebtn {
+  width: 16px;
+  height: 14px;
+  background: var(--aim-face);
+  border-top: 1px solid var(--aim-highlight);
+  border-left: 1px solid var(--aim-highlight);
+  border-right: 1px solid var(--aim-shadow);
+  border-bottom: 1px solid var(--aim-shadow);
+  font-size: 9px;
+  line-height: 12px;
+  text-align: center;
+  color: black;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.pixel-heading {
+  font-family: "Courier New", monospace;
+  font-weight: 900;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.status-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  display: inline-block;
+  box-shadow: inset -1px -1px 1px rgba(0,0,0,0.4);
+}
+.status-trusted { background: var(--aim-trusted); }
+.status-review { background: var(--aim-review); }
+.status-probation { background: repeating-linear-gradient(45deg, var(--aim-probation), var(--aim-probation) 2px, #703812 2px, #703812 4px); }
+.status-blocked { background: var(--aim-blocked); }
+.status-offline { background: var(--aim-offline); }
+.status-active { background: #2e8b22; }
+.status-busy { background: #d8a900; }
+.status-suspended { background: #d2691e; }
+.status-revoked { background: #c1121f; }
+
+.marquee-track {
+  white-space: nowrap;
+  overflow: hidden;
+  position: relative;
+}
+.marquee-inner {
+  display: inline-block;
+  padding-left: 100%;
+  animation: marquee 18s linear infinite;
+}
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-100%); }
+}
+
+.blink {
+  animation: blinker 1s step-start infinite;
+}
+@keyframes blinker {
+  50% { opacity: 0; }
+}
+
+::-webkit-scrollbar { width: 16px; height: 16px; }
+::-webkit-scrollbar-track { background: var(--aim-face); }
+::-webkit-scrollbar-thumb {
+  background: var(--aim-face);
+  border-top: 1px solid var(--aim-highlight);
+  border-left: 1px solid var(--aim-highlight);
+  border-right: 1px solid var(--aim-shadow);
+  border-bottom: 1px solid var(--aim-shadow);
+}
+
+.aim-link { color: #0000ee; text-decoration: underline; cursor: pointer; }
+
+.construction-banner {
+  background: repeating-linear-gradient(45deg, #ffcc00, #ffcc00 10px, #111 10px, #111 20px);
+  color: #111;
+  font-weight: bold;
+  text-align: center;
+  padding: 2px 0;
+  font-size: 11px;
+}

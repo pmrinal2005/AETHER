@@ -1,0 +1,131 @@
+// Exactly 100 A.I.M. features, grouped by layer, all 2000s/AIM-ICQ themed.
+export type Feature = {
+  id: number;
+  category: string;
+  name: string;
+  description: string;
+  status: "Live" | "Beta" | "Planned";
+};
+
+export const FEATURE_CATEGORIES = [
+  "Identity & Passport Layer",
+  "Trust & Reputation Layer",
+  "Moderation & Safety Layer",
+  "Interaction & Discovery Layer",
+  "Developer & Integration Layer",
+  "Retro Desktop Experience",
+] as const;
+
+export const FEATURES: Feature[] = [
+  // ---- Identity & Passport Layer (12) ----
+  { id: 1, category: "Identity & Passport Layer", name: "Agent Passport Issuer", description: "DID + Verifiable Credential bundle per agent.", status: "Live" },
+  { id: 2, category: "Identity & Passport Layer", name: "AgentWhois Lookup", description: "Retro ICQ Whois-style public search.", status: "Live" },
+  { id: 3, category: "Identity & Passport Layer", name: "Protocol Adapter: A2A", description: "Normalizes A2A Agent Cards into Passport schema.", status: "Live" },
+  { id: 4, category: "Identity & Passport Layer", name: "Protocol Adapter: MCP", description: "Normalizes MCP resource metadata.", status: "Live" },
+  { id: 5, category: "Identity & Passport Layer", name: "Protocol Adapter: ACP", description: "Normalizes ACP descriptors.", status: "Live" },
+  { id: 6, category: "Identity & Passport Layer", name: "Protocol Adapter: ANP", description: "Normalizes ANP descriptors.", status: "Live" },
+  { id: 7, category: "Identity & Passport Layer", name: "FIDO/AP2 Credential Stub Mapper", description: "Maps stub FIDO/AP2 credential objects.", status: "Beta" },
+  { id: 8, category: "Identity & Passport Layer", name: "New Buddy Setup Wizard", description: "4-step retro install-wizard registration flow.", status: "Live" },
+  { id: 9, category: "Identity & Passport Layer", name: "Auto-Generated Buddy Icon", description: "Deterministic pixel identicon from DID hash.", status: "Live" },
+  { id: 10, category: "Identity & Passport Layer", name: "did:web Endpoint Emulator", description: "Serves a did.json document per agent.", status: "Beta" },
+  { id: 11, category: "Identity & Passport Layer", name: "Passport Expiry Tracker", description: "Flags passports nearing expiry.", status: "Live" },
+  { id: 12, category: "Identity & Passport Layer", name: "Capability Declaration Tags", description: "Buddy-list capability chips per agent.", status: "Live" },
+
+  // ---- Trust & Reputation Layer (14) ----
+  { id: 13, category: "Trust & Reputation Layer", name: "AgentScore Engine", description: "0-999 portable trust score (dummy Modal-style endpoint).", status: "Live" },
+  { id: 14, category: "Trust & Reputation Layer", name: "Score History Sparkline", description: "Chart.js line chart of score over time.", status: "Live" },
+  { id: 15, category: "Trust & Reputation Layer", name: "Delegation Graph (Buddy Tree)", description: "Parent to sub-agent authorization tree.", status: "Live" },
+  { id: 16, category: "Trust & Reputation Layer", name: "Dynamic Reputation Graph Visualizer", description: "Retro network graph of cooperative/isolated nodes.", status: "Live" },
+  { id: 17, category: "Trust & Reputation Layer", name: "Buddy Bootcamp™ Gauntlet", description: "Cold-start certification vs. 3 fixed personas.", status: "Live" },
+  { id: 18, category: "Trust & Reputation Layer", name: "Warning Level % Meter", description: "Classic AIM warning-meter revival.", status: "Live" },
+  { id: 19, category: "Trust & Reputation Layer", name: "Probation Ladder", description: "Trusted → Review → Probation → Blocked auto-transitions.", status: "Live" },
+  { id: 20, category: "Trust & Reputation Layer", name: "Gossip Edge Propagation", description: "Second-order reputation updates to neighbors.", status: "Live" },
+  { id: 21, category: "Trust & Reputation Layer", name: "Cooperation Rate Doughnut", description: "Chart.js doughnut of bootcamp cooperation rate.", status: "Live" },
+  { id: 22, category: "Trust & Reputation Layer", name: "Bad Actor Isolation Highlight", description: "Auto-highlights isolated low-trust nodes red.", status: "Live" },
+  { id: 23, category: "Trust & Reputation Layer", name: "Score Breakdown Waterfall", description: "Shows model feature contributions per score.", status: "Live" },
+  { id: 24, category: "Trust & Reputation Layer", name: "Trust Tier Legend", description: "Color legend for Trusted/Review/Probation/Blocked.", status: "Live" },
+  { id: 25, category: "Trust & Reputation Layer", name: "Reference Persona Library", description: "Cooperative/Adversarial/Mixed bootcamp personas.", status: "Live" },
+  { id: 26, category: "Trust & Reputation Layer", name: "Cross-Agent Score Comparator", description: "Bar chart comparing multiple agents' scores.", status: "Live" },
+
+  // ---- Moderation & Safety Layer (14) ----
+  { id: 27, category: "Moderation & Safety Layer", name: "Report Abuse Button", description: "Nostalgic report-abuse call-to-action.", status: "Live" },
+  { id: 28, category: "Moderation & Safety Layer", name: "AI Moderator Buddy Popup", description: "\"You've Got Moderation!\" dialog.", status: "Live" },
+  { id: 29, category: "Moderation & Safety Layer", name: "Moderation Queue Console", description: "Admin list view with Approve/Timeout/Revoke.", status: "Live" },
+  { id: 30, category: "Moderation & Safety Layer", name: "Dummy Intent Classifier", description: "Keyword-based stand-in for MiniCPM5-1B endpoint.", status: "Live" },
+  { id: 31, category: "Moderation & Safety Layer", name: "Impersonation Flag Detector", description: "Flags impersonation-style phrasing.", status: "Live" },
+  { id: 32, category: "Moderation & Safety Layer", name: "Prompt-Injection Flag Detector", description: "Flags prompt-injection style phrasing.", status: "Live" },
+  { id: 33, category: "Moderation & Safety Layer", name: "Spoofing Flag Detector", description: "Flags credential-spoofing language.", status: "Live" },
+  { id: 34, category: "Moderation & Safety Layer", name: "Scam Solicitation Detector", description: "Flags financial-solicitation phrasing.", status: "Live" },
+  { id: 35, category: "Moderation & Safety Layer", name: "Real-Time Revocation Bus", description: "Simulated pub/sub instant deauthorization.", status: "Live" },
+  { id: 36, category: "Moderation & Safety Layer", name: "Buddy Signed-Off Animation", description: "Fade + move to offline group on revoke.", status: "Live" },
+  { id: 37, category: "Moderation & Safety Layer", name: "Guardian Console", description: "Enterprise fleet-governance parental-controls panel.", status: "Live" },
+  { id: 38, category: "Moderation & Safety Layer", name: "Time-of-Day Action Limits", description: "Guardian rule restricting active hours.", status: "Live" },
+  { id: 39, category: "Moderation & Safety Layer", name: "Category Block Rules", description: "Guardian rule blocking categories of action.", status: "Live" },
+  { id: 40, category: "Moderation & Safety Layer", name: "Moderation Breakdown Pie Chart", description: "Chart.js pie of flag types in queue.", status: "Live" },
+
+  // ---- Interaction & Discovery Layer (20) ----
+  { id: 41, category: "Interaction & Discovery Layer", name: "Retro Buddy List Shell", description: "Draggable status-grouped buddy sidebar.", status: "Live" },
+  { id: 42, category: "Interaction & Discovery Layer", name: "Color-Coded Status Dots", description: "Green/yellow/orange/red/grey status indicators.", status: "Live" },
+  { id: 43, category: "Interaction & Discovery Layer", name: "Live IM/Chat Simulator", description: "Multi-agent negotiation in classic IM windows.", status: "Live" },
+  { id: 44, category: "Interaction & Discovery Layer", name: "Typing Indicator", description: "\"...is typing\" animation in chat windows.", status: "Live" },
+  { id: 45, category: "Interaction & Discovery Layer", name: "Moderation Intervention Overlay", description: "Inline banner interrupting a flagged chat.", status: "Live" },
+  { id: 46, category: "Interaction & Discovery Layer", name: "Away Message Broadcasting", description: "Active/Busy/Suspended/Revoked status text.", status: "Live" },
+  { id: 47, category: "Interaction & Discovery Layer", name: "Scrolling Marquee Banner", description: "Classic <marquee> style status ticker.", status: "Live" },
+  { id: 48, category: "Interaction & Discovery Layer", name: "Yellow Pages Marketplace", description: "Yahoo-style verified agent directory.", status: "Live" },
+  { id: 49, category: "Interaction & Discovery Layer", name: "Marketplace Domain Filter", description: "Filter directory by capability/domain.", status: "Live" },
+  { id: 50, category: "Interaction & Discovery Layer", name: "Marketplace Score Range Filter", description: "Filter directory by min/max AgentScore.", status: "Live" },
+  { id: 51, category: "Interaction & Discovery Layer", name: "Add to Buddies Action", description: "One-click add discovered agent to buddy list.", status: "Live" },
+  { id: 52, category: "Interaction & Discovery Layer", name: "Right-Click Buddy Context Menu", description: "View Profile / IM / Report / Remove menu.", status: "Live" },
+  { id: 53, category: "Interaction & Discovery Layer", name: "Draggable Group Headers", description: "Reorderable buddy-list status groups.", status: "Live" },
+  { id: 54, category: "Interaction & Discovery Layer", name: "Systray Minimize Behavior", description: "Minimize windows to the taskbar tray.", status: "Live" },
+  { id: 55, category: "Interaction & Discovery Layer", name: "Under-Construction Banner", description: "Classic animated construction-GIF footer.", status: "Live" },
+  { id: 56, category: "Interaction & Discovery Layer", name: "Guest Book Panel", description: "Retro profile guestbook comments.", status: "Beta" },
+  { id: 57, category: "Interaction & Discovery Layer", name: "Buddy Info Card", description: "Flip-style profile summary card.", status: "Live" },
+  { id: 58, category: "Interaction & Discovery Layer", name: "Ignore/Block List", description: "Per-persona ignore list management.", status: "Beta" },
+  { id: 59, category: "Interaction & Discovery Layer", name: "Chat Transcript Export", description: "Export IM transcript as text.", status: "Live" },
+  { id: 60, category: "Interaction & Discovery Layer", name: "Multi-Window Chat Sessions", description: "Open several IM windows simultaneously.", status: "Live" },
+
+  // ---- Developer & Integration Layer (14) ----
+  { id: 61, category: "Developer & Integration Layer", name: "Verified Badge Widget", description: "Embeddable AIM-Verified seal.", status: "Live" },
+  { id: 62, category: "Developer & Integration Layer", name: "Public Verify API", description: "GET /api/verify/:agentId trust JSON.", status: "Live" },
+  { id: 63, category: "Developer & Integration Layer", name: "Draggable 2000s Toolbar", description: "Floating quick-action button strip.", status: "Live" },
+  { id: 64, category: "Developer & Integration Layer", name: "Developer Console", description: "Self-serve registration & key management.", status: "Live" },
+  { id: 65, category: "Developer & Integration Layer", name: "API Key Generator", description: "Hashed API key issuance per agent.", status: "Live" },
+  { id: 66, category: "Developer & Integration Layer", name: "Credential Rotation UI", description: "Rotate agent credentials on demand.", status: "Live" },
+  { id: 67, category: "Developer & Integration Layer", name: "VC Export (JSON-LD)", description: "Export passport as JSON-LD.", status: "Live" },
+  { id: 68, category: "Developer & Integration Layer", name: "VC Export (JWT)", description: "Export passport as signed JWT-style token.", status: "Live" },
+  { id: 69, category: "Developer & Integration Layer", name: "Live Reputation Dashboard Chart", description: "Chart.js dashboard of score trend per agent.", status: "Live" },
+  { id: 70, category: "Developer & Integration Layer", name: "Provenance & Audit Viewer", description: "Timeline of scored actions with proof hashes.", status: "Live" },
+  { id: 71, category: "Developer & Integration Layer", name: "Anchored-on-Chain Badge (Mock)", description: "Static roadmap badge, not yet implemented on-chain.", status: "Planned" },
+  { id: 72, category: "Developer & Integration Layer", name: "TrustFederation Protocol", description: "Signed attestation exchange between registries.", status: "Live" },
+  { id: 73, category: "Developer & Integration Layer", name: "Federation Peer Manager", description: "Add/manage external registry peers.", status: "Live" },
+  { id: 74, category: "Developer & Integration Layer", name: "Mock External Registry Sync", description: "Demonstrates live federation sync to a mock peer.", status: "Live" },
+
+  // ---- Retro Desktop Experience (26) ----
+  { id: 75, category: "Retro Desktop Experience", name: "AIM Sign-On Screen", description: "Classic screen-name + password sign-on.", status: "Live" },
+  { id: 76, category: "Retro Desktop Experience", name: "Blue Gradient Title Bars", description: "Windows XP Luna-style window chrome.", status: "Live" },
+  { id: 77, category: "Retro Desktop Experience", name: "Beveled 3D Buttons", description: "Inset/outset box-shadow button styling.", status: "Live" },
+  { id: 78, category: "Retro Desktop Experience", name: "Tahoma/MS Sans Serif Typeface", description: "Period-accurate UI typography.", status: "Live" },
+  { id: 79, category: "Retro Desktop Experience", name: "Draggable Windows", description: "React-RND powered window dragging.", status: "Live" },
+  { id: 80, category: "Retro Desktop Experience", name: "Resizable Windows", description: "React-RND powered window resizing.", status: "Live" },
+  { id: 81, category: "Retro Desktop Experience", name: "Start Menu", description: "Classic Start button + fly-out menu.", status: "Live" },
+  { id: 82, category: "Retro Desktop Experience", name: "Taskbar with Clock", description: "Live clock + open-window buttons.", status: "Live" },
+  { id: 83, category: "Retro Desktop Experience", name: "Sign-On/Sign-Off Sound Cues", description: "Web Audio synthesized retro tones.", status: "Live" },
+  { id: 84, category: "Retro Desktop Experience", name: "IM-Received Sound Cue", description: "Door-knock-style chat alert tone.", status: "Live" },
+  { id: 85, category: "Retro Desktop Experience", name: "Warning Sound Cue", description: "Alert tone on warning-level increase.", status: "Live" },
+  { id: 86, category: "Retro Desktop Experience", name: "Revocation Sound Cue", description: "Descending tone on buddy sign-off.", status: "Live" },
+  { id: 87, category: "Retro Desktop Experience", name: "Sound On/Off Toggle", description: "Global mute toggle in taskbar.", status: "Live" },
+  { id: 88, category: "Retro Desktop Experience", name: "Desktop Wallpaper", description: "Y2K teal desktop backdrop.", status: "Live" },
+  { id: 89, category: "Retro Desktop Experience", name: "Cracked Icon on Probation", description: "Buddy icon visually cracks/grays by threshold.", status: "Live" },
+  { id: 90, category: "Retro Desktop Experience", name: "Notification Toast Pop-ups", description: "\"You've Got...\" style corner toasts.", status: "Live" },
+  { id: 91, category: "Retro Desktop Experience", name: "Window Z-Index Focus Manager", description: "Click-to-front window stacking.", status: "Live" },
+  { id: 92, category: "Retro Desktop Experience", name: "Minimize/Maximize/Close Controls", description: "Classic three-button window controls.", status: "Live" },
+  { id: 93, category: "Retro Desktop Experience", name: "Retro Scrollbars", description: "Chunky beveled scrollbar styling.", status: "Live" },
+  { id: 94, category: "Retro Desktop Experience", name: "Pixel Font Headings", description: "Blocky pixel-styled section headers.", status: "Live" },
+  { id: 95, category: "Retro Desktop Experience", name: "Hover Tooltip Previews", description: "Y2K-style yellow tooltip bubbles.", status: "Live" },
+  { id: 96, category: "Retro Desktop Experience", name: "100-Feature Checklist Page", description: "This very list, rendered retro-style.", status: "Live" },
+  { id: 97, category: "Retro Desktop Experience", name: "Demo Data Reset Button", description: "Reseed all dummy demo data on demand.", status: "Live" },
+  { id: 98, category: "Retro Desktop Experience", name: "Pitch Deck / Roadmap Page", description: "Judging-criteria mapped narrative page.", status: "Live" },
+  { id: 99, category: "Retro Desktop Experience", name: "Loading Hourglass Cursor", description: "Classic hourglass cursor on async actions.", status: "Live" },
+  { id: 100, category: "Retro Desktop Experience", name: "Easter Egg Matrix Rain Toggle", description: "Hidden retro screensaver easter egg.", status: "Beta" },
+];
