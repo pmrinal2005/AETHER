@@ -235,10 +235,32 @@ export function ModerationQueuePanel({ data, refresh }: { data: DashboardData; r
   const counts: Record<string, number> = {};
   data.moderationQueue.forEach((m) => { counts[m.flagType] = (counts[m.flagType] ?? 0) + 1; });
 
+  const total = data.moderationQueue.length;
+  const approved = data.moderationQueue.filter((m) => m.status === "approved").length;
+  const revoked = data.moderationQueue.filter((m) => m.status === "revoked").length;
+
+  // Outcomes stacked by flag type.
+  const modFlags = Object.keys(counts).length ? Object.keys(counts) : ["benign"];
+  const outApproved = modFlags.map((f) => data.moderationQueue.filter((m) => m.flagType === f && m.status === "approved").length);
+  const outTimeout = modFlags.map((f) => data.moderationQueue.filter((m) => m.flagType === f && m.status === "timeout").length);
+  const outRevoked = modFlags.map((f) => data.moderationQueue.filter((m) => m.flagType === f && m.status === "revoked").length);
+  const outPending = modFlags.map((f) => data.moderationQueue.filter((m) => m.flagType === f && m.status === "pending").length);
+
   return (
     <div className="p-3 space-y-2">
-      <div className="pixel-heading text-[12px]">🚨 Moderation Queue</div>
-      <ModerationBreakdownPie counts={counts} />
+      <div className="pixel-heading text-[12px]">🚨 Moderation Queue — AI Moderator Buddy</div>
+      <div className="text-[10px] text-gray-600">Fine-tuned small-model (MiniCPM5-1B, mocked) intent/impersonation/prompt-injection classifier. Data is synthetic/dummy for demo.</div>
+      <div className="grid grid-cols-4 gap-2">
+        <div className="aim-stat"><span className="stat-num">{pending.length}</span><span className="stat-label">Pending</span></div>
+        <div className="aim-stat"><span className="stat-num">{approved}</span><span className="stat-label">Approved</span></div>
+        <div className="aim-stat"><span className="stat-num">{revoked}</span><span className="stat-label">Revoked</span></div>
+        <div className="aim-stat"><span className="stat-num">{total}</span><span className="stat-label">Total</span></div>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        <div className="chart-box"><div className="chart-title">Flag Types</div><ModerationBreakdownPie counts={Object.keys(counts).length ? counts : { benign: 1 }} /></div>
+        <div className="chart-box"><div className="chart-title">Outcomes by Flag Type</div><ModerationOutcomeStacked labels={modFlags} approved={outApproved} timeout={outTimeout} revoked={outRevoked} pending={outPending} /></div>
+      </div>
+      <div className="text-[11px] font-bold">Pending Review Queue</div>
       <div className="space-y-1">
         {pending.map((m) => (
           <div key={m.id} className="aim-inset p-2 flex items-center gap-2 text-[11px]">
@@ -258,9 +280,15 @@ export function ModerationQueuePanel({ data, refresh }: { data: DashboardData; r
           <div className="aim-window w-80">
             <div className="aim-titlebar">📬 You've Got Moderation!</div>
             <div className="p-3 space-y-2 bg-white">
-              <div className="text-[11px]">Agent: <b>{agentName(data, popup.agentId)}</b></div>
-              <div className="text-[11px]">Flag: <b>{popup.flagType}</b></div>
-              <div className="text-[11px]">AI Confidence: <b>{Math.round(popup.aiConfidence * 100)}%</b></div>
+              <div className="flex items-center gap-2">
+                <BuddyIcon seed={agentName(data, popup.agentId)} size={32} />
+                <div className="text-[11px]">
+                  <div>Agent: <b>{agentName(data, popup.agentId)}</b></div>
+                  <div>Flag: <b className="text-red-700">{popup.flagType}</b></div>
+                </div>
+              </div>
+              <ConfidenceGauge confidence={popup.aiConfidence} label={`${Math.round(popup.aiConfidence * 100)}% conf.`} />
+              <div className="text-[10px] text-gray-600 text-center">AI moderator confidence for this flag.</div>
               <div className="flex gap-2 pt-2">
                 <button className="aim-btn text-[10px] flex-1" onClick={() => act(popup.id, "approved")}>✅ Approve</button>
                 <button className="aim-btn text-[10px] flex-1" onClick={() => act(popup.id, "timeout")}>⏸ Timeout</button>

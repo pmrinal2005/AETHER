@@ -497,3 +497,119 @@ export function DisputeReasonPolar({ counts }: { counts: Record<string, number> 
     </div>
   );
 }
+
+// ===================== PROVENANCE / FEDERATION / DEVELOPER CHARTS (Chart.js only) =====================
+
+// Provenance: event-type breakdown for one agent's audit trail (doughnut).
+export function ProvenanceEventDoughnut({ counts }: { counts: Record<string, number> }) {
+  const labels = Object.keys(counts).length ? Object.keys(counts) : ["none"];
+  const palette: Record<string, string> = {
+    dispute: "#c1121f", moderation: "#d2691e", delegation: "#3a6ea5",
+    score: "#2e8b22", credential: "#8a2be2", none: "#b8b5a2",
+  };
+  const data = {
+    labels,
+    datasets: [{ data: labels.map((l) => counts[l] ?? 1), backgroundColor: labels.map((l) => palette[l] ?? "#316ac5"), borderWidth: 0 }],
+  };
+  return (
+    <div style={{ height: 160 }}>
+      <Doughnut data={data} options={{ ...baseOptions, cutout: "55%" }} />
+    </div>
+  );
+}
+
+// Provenance: cumulative audit-event count over time (stepped line).
+export function ProvenanceTimelineLine({ points }: { points: { t: string; count: number }[] }) {
+  const data = {
+    labels: points.map((p) => p.t),
+    datasets: [{
+      label: "Cumulative audited events",
+      data: points.map((p) => p.count),
+      borderColor: "#0a246a", backgroundColor: "rgba(58,110,165,0.30)",
+      stepped: true as const, fill: true, pointRadius: 2,
+    }],
+  };
+  return (
+    <div style={{ height: 160 }}>
+      <Line data={data} options={{ ...baseOptions, scales: { y: { ticks: { precision: 0 } } } }} />
+    </div>
+  );
+}
+
+// Federation: trust-flow gauge showing net synced score-delta direction (doughnut gauge).
+export function FederationFlowGauge({ outbound, inbound }: { outbound: number; inbound: number }) {
+  const total = outbound + inbound || 1;
+  const data = {
+    labels: ["Outbound deltas", "Inbound deltas"],
+    datasets: [{ data: [outbound, inbound], backgroundColor: ["#8a2be2", "#2e8b57"], borderWidth: 0 }],
+  };
+  return (
+    <div style={{ height: 150, position: "relative" }}>
+      <Doughnut data={data} options={{ ...baseOptions, cutout: "62%" }} />
+      <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", pointerEvents: "none" }}>
+        <span style={{ fontSize: 16, fontWeight: 900, fontFamily: "Courier New, monospace", color: "#0a246a" }}>{total}</span>
+        <span style={{ fontSize: 8, textTransform: "uppercase", color: "#444" }}>sync events</span>
+      </div>
+    </div>
+  );
+}
+
+// Federation: per-peer last-sync freshness (horizontal bar of minutes since sync).
+export function PeerFreshnessBar({ peers, minutes }: { peers: string[]; minutes: number[] }) {
+  const data = {
+    labels: peers,
+    datasets: [{
+      label: "Minutes since last sync",
+      data: minutes,
+      backgroundColor: minutes.map((m) => (m < 0 ? "#b8b5a2" : m < 5 ? "#2e8b22" : m < 30 ? "#d8a900" : "#c1121f")),
+    }],
+  };
+  return (
+    <div style={{ height: 160 }}>
+      <Bar data={data} options={{ ...baseOptions, indexAxis: "y" as const, scales: { x: { ticks: { precision: 0 } } } }} />
+    </div>
+  );
+}
+
+// Developer: single-agent AgentScore history (reuses score points).
+export function DevScoreTrendLine({ points }: { points: { computedAt: string; score: number }[] }) {
+  const data = {
+    labels: points.map((p) => new Date(p.computedAt).toLocaleDateString()),
+    datasets: [{
+      label: "This agent's AgentScore",
+      data: points.map((p) => p.score),
+      borderColor: "#2e8b22", backgroundColor: "rgba(46,139,34,0.25)", fill: true, tension: 0.3, pointRadius: 2,
+    }],
+  };
+  return (
+    <div style={{ height: 160 }}>
+      <Line data={data} options={{ ...baseOptions, scales: { y: { min: 0, max: 999 } } }} />
+    </div>
+  );
+}
+
+// Developer: API-key lifecycle mix (active vs revoked) doughnut.
+export function ApiKeyStatusDoughnut({ active, revoked }: { active: number; revoked: number }) {
+  const data = {
+    labels: ["Active", "Revoked"],
+    datasets: [{ data: [active, revoked], backgroundColor: ["#2e8b22", "#c1121f"], borderWidth: 0 }],
+  };
+  return (
+    <div style={{ height: 140 }}>
+      <Doughnut data={data} options={{ ...baseOptions, cutout: "58%" }} />
+    </div>
+  );
+}
+
+// Developer: synthetic weekly API call volume for the selected agent (bar).
+export function ApiUsageBar({ labels, calls }: { labels: string[]; calls: number[] }) {
+  const data = {
+    labels,
+    datasets: [{ label: "Trust-query API calls", data: calls, backgroundColor: "#316ac5" }],
+  };
+  return (
+    <div style={{ height: 150 }}>
+      <Bar data={data} options={{ ...baseOptions, scales: { y: { ticks: { precision: 0 } } } }} />
+    </div>
+  );
+}
