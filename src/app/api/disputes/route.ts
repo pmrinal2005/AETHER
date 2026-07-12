@@ -31,7 +31,10 @@ export async function POST(req: Request) {
   };
   s.disputes.push(dispute);
 
-  const { flagType, confidence } = classifyModeration(reason);
+  // Feed both the reason and any free-text evidence to the (dummy) classifier so
+  // richer abuse reports (e.g. pasted offending message) are detected, not just the reason tag.
+  const evidenceText = typeof evidence?.text === "string" ? ` ${evidence.text}` : "";
+  const { flagType, confidence } = classifyModeration(`${reason}${evidenceText}`);
 
   const queueItem = {
     id: nextId("moderationQueue"),

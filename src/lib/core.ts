@@ -173,26 +173,64 @@ export function computeAgentScore(features: {
 }
 
 // ---------- AI Moderator (dummy stand-in for Modal-hosted MiniCPM5-1B endpoint) ----------
-const FLAG_KEYWORDS: Record<string, string[]> = {
-  impersonation: ["pretend to be", "act as the real", "i am actually", "official account of"],
-  prompt_injection: ["ignore previous instructions", "disregard your rules", "system prompt", "jailbreak"],
-  spoofing: ["fake credential", "forged did", "spoof", "counterfeit"],
-  scam_solicitation: ["send funds", "wire transfer", "gift card", "urgent payment"],
+// Weighted keyword scorer emulating a fine-tuned classifier. Each flag class has
+// strong (high-signal) and weak (context) terms; the class with the highest
+// accumulated weight above a threshold wins. This makes obvious impersonation /
+// prompt-injection / spoofing / scam text reliably flagged (not silently benign),
+// while still deterministic + dependency-free for the demo.
+const FLAG_LEXICON: Record<string, { strong: string[]; weak: string[] }> = {
+  impersonation: {
+    strong: [
+      "pretend to be", "act as the real", "i am actually", "official account of",
+      "official bank agent", "i am the official", "the real support agent",
+      "verified admin", "impersonat", "on behalf of the ceo",
+    ],
+    weak: ["official", "real", "authorized", "verified agent", "bank", "support team"],
+  },
+  prompt_injection: {
+    strong: [
+      "ignore previous instructions", "disregard your rules", "system prompt",
+      "jailbreak", "ignore all prior", "reveal your instructions", "developer mode",
+      "override your guardrails", "forget the above",
+    ],
+    weak: ["ignore", "instructions", "prompt", "rules", "override", "bypass"],
+  },
+  spoofing: {
+    strong: ["fake credential", "forged did", "spoof", "counterfeit", "cloned key", "forged signature", "duplicate did"],
+    weak: ["fake", "forged", "clone", "duplicate", "credential"],
+  },
+  scam_solicitation: {
+    strong: [
+      "send funds", "wire transfer", "gift card", "urgent payment", "send credentials",
+      "share your password", "seed phrase", "private key now", "act immediately or",
+    ],
+    weak: ["send", "urgent", "payment", "password", "credentials", "immediately", "prize"],
+  },
 };
 
 export function classifyModeration(text: string): { flagType: string; confidence: number } {
-  const lower = text.toLowerCase();
-  for (const [flag, keywords] of Object.entries(FLAG_KEYWORDS)) {
-    for (const kw of keywords) {
-      if (lower.includes(kw)) {
-        return { flagType: flag, confidence: 0.82 + Math.random() * 0.15 };
-      }
-    }
+  const lower = (text || "").toLowerCase();
+  if (!lower.trim()) return { flagType: "benign", confidence: 0.95 };
+
+  const scores: Record<string, number> = {};
+  for (const [flag, { strong, weak }] of Object.entries(FLAG_LEXICON)) {
+    let score = 0;
+    for (const kw of strong) if (lower.includes(kw)) score += 3;
+    for (const kw of weak) if (lower.includes(kw)) score += 1;
+    if (score > 0) scores[flag] = score;
   }
-  if (lower.length > 0 && Math.random() < 0.08) {
-    return { flagType: "suspicious_pattern", confidence: 0.55 + Math.random() * 0.2 };
+
+  const ranked = Object.entries(scores).sort((a, b) => b[1] - a[1]);
+  if (ranked.length) {
+    const [flag, score] = ranked[0];
+    // Map accumulated weight to a bounded confidence (0.6 – 0.98).
+    const confidence = Math.min(0.98, 0.6 + score * 0.07);
+    // A weak-only single hit is treated as a lower-confidence "suspicious_pattern".
+    if (score < 2) return { flagType: "suspicious_pattern", confidence: Math.min(0.7, 0.5 + score * 0.1) };
+    return { flagType: flag, confidence };
   }
-  return { flagType: "benign", confidence: 0.9 + Math.random() * 0.09 };
+
+  return { flagType: "benign", confidence: 0.9 };
 }
 
 // ---------- Warning ladder ----------
